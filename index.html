@@ -50,6 +50,8 @@
     .header::before { content: '⛳'; position: absolute; font-size: 120px; opacity: 0.07; right: -20px; top: -10px; }
     .header-sub { font-size: 11px; color: rgba(255,255,255,0.7); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
     .header-title { font-family: 'Noto Serif SC', serif; font-size: 26px; font-weight: 900; color: #fff; letter-spacing: 1px; }
+    .install-fab { position: absolute; top: max(12px, env(safe-area-inset-top, 12px)); right: 14px; background: rgba(255,255,255,0.22); border: 1.5px solid rgba(255,255,255,0.5); color: #fff; border-radius: 20px; padding: 6px 13px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(4px); transition: background 0.15s; white-space: nowrap; }
+    .install-fab:active { background: rgba(255,255,255,0.35); }
 
     /* Tabs */
     .tabs { display: flex; margin: 16px 16px 0; background: #fff; border-radius: 12px; padding: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
@@ -168,6 +170,7 @@ try { showInstall = localStorage.getItem("golf_hide_install") !== "1"; } catch {
 window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
   deferredPrompt = e;
+  showInstall = true; // reset in case user dismissed banner before
   render();
 });
 window.addEventListener("appinstalled", () => {
@@ -332,6 +335,7 @@ function render() {
     <div class="header">
       <div class="header-sub">Golf Scorecard</div>
       <div class="header-title">高尔夫记分卡</div>
+      ${deferredPrompt && !isInStandalone ? `<button class="install-fab" onclick="triggerInstall()">📲 安装APP</button>` : ""}
     </div>
 
     ${bannerHtml}
