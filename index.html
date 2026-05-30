@@ -75,19 +75,19 @@
     .strokes-lbl { font-size: 11px; color: #94A3B8; text-align: right; margin-top: 4px; }
 
     /* Holes grid */
-    .holes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 16px; }
-    .hole-card { border-radius: 12px; padding: 10px 6px 8px; transition: all 0.15s; }
-    .hole-num-row { display: flex; justify-content: center; align-items: center; margin-bottom: 8px; position: relative; height: 14px; }
-    .hole-num { font-size: 10px; color: #94A3B8; font-weight: 600; }
-    .clear-hole-btn { position: absolute; right: 0; top: -1px; background: none; border: none; color: #CBD5E1; font-size: 14px; cursor: pointer; padding: 0 2px; transition: color 0.15s; }
+    .holes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 14px; }
+    .hole-card { border-radius: 16px; padding: 12px 8px 10px; transition: all 0.15s; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .hole-num-row { display: flex; justify-content: center; align-items: center; margin-bottom: 10px; position: relative; height: 20px; }
+    .hole-num { font-size: 13px; color: #475569; font-weight: 700; letter-spacing: 0.3px; }
+    .clear-hole-btn { position: absolute; right: 0; top: -1px; background: none; border: none; color: #CBD5E1; font-size: 16px; cursor: pointer; padding: 0 2px; transition: color 0.15s; }
     .clear-hole-btn:active { color: #DC2626; }
-    .hole-controls { display: flex; align-items: center; justify-content: space-between; }
-    .adj-btn { width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid #E2E8F0; background: #fff; color: #475569; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s; font-weight: 400; box-shadow: 0 1px 3px rgba(0,0,0,0.07); line-height: 1; }
-    .adj-btn:active { transform: scale(0.92); background: #F1F5F9; }
-    .adj-btn:disabled { opacity: 0.25; cursor: not-allowed; }
-    .hole-score { font-family: 'Noto Serif SC', serif; font-size: 26px; font-weight: 700; text-align: center; flex: 1; line-height: 1; }
-    .dash { color: #CBD5E1; }
-    .score-label { font-size: 10px; text-align: center; margin-top: 6px; font-weight: 500; height: 14px; }
+    .hole-controls { display: flex; align-items: center; justify-content: space-between; gap: 2px; }
+    .adj-btn { width: 36px; height: 36px; border-radius: 10px; border: 2px solid rgba(0,0,0,0.08); background: rgba(255,255,255,0.75); color: #334155; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s; font-weight: 500; box-shadow: 0 1px 4px rgba(0,0,0,0.1); line-height: 1; flex-shrink: 0; }
+    .adj-btn:active { transform: scale(0.90); background: rgba(255,255,255,0.95); }
+    .adj-btn:disabled { opacity: 0.22; cursor: not-allowed; }
+    .hole-score { font-family: 'Noto Serif SC', serif; font-size: 34px; font-weight: 900; text-align: center; flex: 1; line-height: 1; }
+    .dash { color: #CBD5E1; font-size: 28px; }
+    .score-label { font-size: 12px; text-align: center; margin-top: 8px; font-weight: 700; height: 17px; letter-spacing: 0.3px; }
 
     /* Bottom buttons */
     .finish-wrap { padding: 16px 16px 0; display: flex; gap: 8px; }
@@ -147,11 +147,12 @@ const SCORE_LABELS = {
   "3":  { label: "三博忌", color: "#991B1B" },
 };
 function scoreStyle(val) {
-  if (val === null) return { bg: "#F8FAFC", color: "#CBD5E1", border: "1.5px solid #E2E8F0" };
-  if (val <= -2)    return { bg: "#FEF3C7", color: "#D97706", border: "1.5px solid #FCD34D" };
-  if (val === -1)   return { bg: "#DCFCE7", color: "#16A34A", border: "1.5px solid #86EFAC" };
-  if (val === 0)    return { bg: "#F1F5F9", color: "#64748B", border: "1.5px solid #CBD5E1" };
-  return               { bg: "#FEE2E2", color: "#DC2626", border: "1.5px solid #FCA5A5" };
+  if (val === null) return { bg: "#FFFFFF", color: "#94A3B8", border: "2px solid #E2E8F0" };
+  if (val <= -2)    return { bg: "#FDE68A", color: "#92400E", border: "2px solid #F59E0B" };
+  if (val === -1)   return { bg: "#86EFAC", color: "#14532D", border: "2px solid #22C55E" };
+  if (val === 0)    return { bg: "#DBEAFE", color: "#1E40AF", border: "2px solid #93C5FD" };
+  if (val === 1)    return { bg: "#FECACA", color: "#991B1B", border: "2px solid #F87171" };
+  return               { bg: "#FCA5A5", color: "#7F1D1D", border: "2px solid #EF4444" };
 }
 
 // ── State ─────────────────────────────────────────────────────────────
