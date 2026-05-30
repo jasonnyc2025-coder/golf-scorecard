@@ -156,6 +156,42 @@ function scoreStyle(val) {
   return               { bg: "#EF4444", color: "#fff",     border: "2px solid #DC2626", hdrBg: "#991B1B",  hdrColor: "#fff" };
 }
 
+// ── IndexedDB ─────────────────────────────────────────────────────────
+const DB_NAME = 'golf_scorecard', DB_VER = 1, STORE = 'history';
+function openDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(DB_NAME, DB_VER);
+    r.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE))
+        db.createObjectStore(STORE, { keyPath: 'id' });
+    };
+    r.onsuccess = e => res(e.target.result);
+    r.onerror   = e => rej(e.target.error);
+  });
+}
+function dbGetAll() {
+  return openDB().then(db => new Promise((res, rej) => {
+    const r = db.transaction(STORE,'readonly').objectStore(STORE).getAll();
+    r.onsuccess = e => res(e.target.result.sort((a,b) => b.id - a.id));
+    r.onerror   = e => rej(e.target.error);
+  }));
+}
+function dbAdd(rec) {
+  return openDB().then(db => new Promise((res, rej) => {
+    const r = db.transaction(STORE,'readwrite').objectStore(STORE).put(rec);
+    r.onsuccess = () => res();
+    r.onerror   = e => rej(e.target.error);
+  }));
+}
+function dbDelete(id) {
+  return openDB().then(db => new Promise((res, rej) => {
+    const r = db.transaction(STORE,'readwrite').objectStore(STORE).delete(id);
+    r.onsuccess = () => res();
+    r.onerror   = e => rej(e.target.error);
+  }));
+}
+
 // ── State ─────────────────────────────────────────────────────────────
 let scores   = Array(HOLES).fill(null);
 let history  = [];
@@ -165,20 +201,31 @@ let toastTimer  = null;
 let showInstall = true;
 let deferredPrompt = null;
 
-try { history = JSON.parse(localStorage.getItem("golf_pwa_v1") || "[]"); } catch {}
-try { showInstall = localStorage.getItem("golf_hide_install") !== "1"; } catch {}
+// 初始化：从 IndexedDB 加载，同时迁移旧 localStorage 数据
+async function initDB() {
+  try {
+    const old = localStorage.getItem("golf_pwa_v1");
+    if (old) {
+      const records = JSON.parse(old);
+      for (const r of records) await dbAdd(r);
+      localStorage.removeItem("golf_pwa_v1");
+    }
+  } catch {}
+  history = await dbGetAll();
+  render();
+}
+initDB();
 
 // ── PWA install prompt ────────────────────────────────────────────────
 window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
   deferredPrompt = e;
-  showInstall = true; // reset in case user dismissed banner before
+  showInstall = true;
   render();
 });
 window.addEventListener("appinstalled", () => {
   deferredPrompt = null;
   showInstall = false;
-  localStorage.setItem("golf_hide_install", "1");
   render();
 });
 
@@ -191,7 +238,7 @@ function clearHole(hole) {
   scores[hole - 1] = null;
   render();
 }
-function finish() {
+async function finish() {
   const total = scores.reduce((a,b)=>a+(b??0),0);
   const rec = {
     id: Date.now(),
@@ -202,16 +249,16 @@ function finish() {
     eagles:  scores.filter(s=>s<=-2).length,
     bogeys:  scores.filter(s=>s>=1).length,
   };
+  await dbAdd(rec);
   history = [rec, ...history];
-  localStorage.setItem("golf_pwa_v1", JSON.stringify(history));
   scores = Array(HOLES).fill(null);
   tab = "history";
   showToast("✅ 已保存到历史记录");
   render();
 }
-function deleteRecord(id) {
+async function deleteRecord(id) {
+  await dbDelete(id);
   history = history.filter(r => r.id !== id);
-  localStorage.setItem("golf_pwa_v1", JSON.stringify(history));
   render();
 }
 function showToast(msg) {
