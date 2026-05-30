@@ -108,6 +108,14 @@
     .confirm-cancel { flex: 1; padding: 13px; border-radius: 12px; border: 1.5px solid #E2E8F0; background: #fff; color: #64748B; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; }
     .confirm-ok { flex: 1; padding: 13px; border-radius: 12px; border: none; background: #DC2626; color: #fff; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; }
 
+    /* Backup bar */
+    .backup-bar { display: flex; gap: 8px; padding: 12px 8px 0; }
+    .backup-btn { flex: 1; padding: 13px 8px; border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; border: none; }
+    .backup-export { background: #166534; color: #fff; box-shadow: 0 2px 8px rgba(22,101,52,0.3); }
+    .backup-export:active { background: #14532D; }
+    .backup-import { background: #fff; color: #475569; border: 1.5px solid #E2E8F0; }
+    .backup-import:active { background: #F1F5F9; }
+
     /* History */
     .history-list { padding: 0 16px; margin-top: 16px; }
     .history-empty { text-align: center; color: #94A3B8; padding: 60px 20px; font-size: 14px; line-height: 2; }
@@ -261,6 +269,39 @@ async function deleteRecord(id) {
   history = history.filter(r => r.id !== id);
   render();
 }
+// ── 备份 / 恢复 ───────────────────────────────────────────────────────
+function exportData() {
+  const payload = JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), history }, null, 2);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([payload], { type: 'application/json' }));
+  a.download = `高尔夫记录_${new Date().toLocaleDateString('zh-CN').replace(/\//g,'-')}.json`;
+  a.click();
+  showToast('📁 备份已保存到下载文件夹');
+}
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      const records = Array.isArray(data) ? data : (data.history || []);
+      if (!records.length) throw new Error();
+      const existingIds = new Set(history.map(r => r.id));
+      let added = 0;
+      for (const r of records) {
+        if (!existingIds.has(r.id)) { await dbAdd(r); added++; }
+      }
+      history = await dbGetAll();
+      render();
+      showToast(`✅ 已恢复 ${added} 条记录`);
+    } catch { showToast('❌ 文件格式有误，恢复失败'); }
+  };
+  input.click();
+}
+
 function showToast(msg) {
   clearTimeout(toastTimer);
   const el = document.getElementById("toast");
@@ -421,6 +462,10 @@ function render() {
         ${filled>0?`<button class="reset-btn" onclick="showConfirm=true;render()">重置</button>`:""}
       </div>
     ` : `
+      <div class="backup-bar">
+        <button class="backup-btn backup-export" onclick="exportData()">📥 导出备份到手机</button>
+        <button class="backup-btn backup-import" onclick="importData()">📤 从备份恢复</button>
+      </div>
       <div class="history-list">${histHtml}</div>
     `}
   `;
