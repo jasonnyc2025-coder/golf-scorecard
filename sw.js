@@ -1,9 +1,11 @@
-const CACHE = "golf-v1";
+const CACHE = "golf-v2";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icon.svg"
+  "./icon.svg",
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
 self.addEventListener("install", e => {
