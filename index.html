@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#166534" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="高尔夫记分" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="description" content="高尔夫记分卡 - 18洞记分，历史记录" />
+
+  <title>高尔夫记分卡</title>
+
+  <!-- PWA Icons -->
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow-x: hidden; }
+    body {
+      background: #F0F4F0;
+      font-family: 'Inter', -apple-system, sans-serif;
+      color: #1E293B;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-font-smoothing: antialiased;
+    }
+    #app { max-width: 500px; margin: 0 auto; padding: 0 0 100px 0; min-height: 100vh; background: #F0F4F0; }
+
+    /* Safe area for iPhone notch */
+    .header { padding-top: max(36px, env(safe-area-inset-top, 36px)); }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #166534 0%, #15803D 60%, #22C55E 100%);
+      padding-bottom: 28px;
+      padding-left: 20px;
+      padding-right: 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before { content: '⛳'; position: absolute; font-size: 120px; opacity: 0.07; right: -20px; top: -10px; }
+    .header-sub { font-size: 11px; color: rgba(255,255,255,0.7); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+    .header-title { font-family: 'Noto Serif SC', serif; font-size: 26px; font-weight: 900; color: #fff; letter-spacing: 1px; }
+
+    /* Tabs */
+    .tabs { display: flex; margin: 16px 16px 0; background: #fff; border-radius: 12px; padding: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .tab-btn { flex: 1; padding: 10px 0; background: none; border: none; color: #94A3B8; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 9px; transition: all 0.2s; }
+    .tab-btn.active { background: #166534; color: #fff; box-shadow: 0 2px 8px rgba(22,101,52,0.25); }
+
+    /* Stat bar */
+    .stat-bar { display: flex; gap: 8px; padding: 14px 16px; }
+    .stat-chip { flex: 1; background: #fff; border-radius: 12px; padding: 12px 6px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #E2E8F0; }
+    .stat-val { font-family: 'Noto Serif SC', serif; font-size: 22px; font-weight: 700; line-height: 1; }
+    .stat-lbl { font-size: 10px; color: #94A3B8; letter-spacing: 0.5px; margin-top: 4px; }
+
+    /* Total banner */
+    .total-banner { margin: 0 16px 14px; background: #fff; border-radius: 16px; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border: 1px solid #E2E8F0; }
+    .total-label { font-size: 11px; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .total-score { font-family: 'Noto Serif SC', serif; font-size: 44px; font-weight: 900; color: #16A34A; line-height: 1; }
+    .total-score.over { color: #DC2626; }
+    .total-score.even { color: #64748B; }
+    .progress-text { font-size: 12px; color: #94A3B8; margin-top: 6px; }
+    .strokes-val { font-family: 'Noto Serif SC', serif; font-size: 30px; font-weight: 700; color: #1E293B; line-height: 1; }
+    .strokes-lbl { font-size: 11px; color: #94A3B8; text-align: right; margin-top: 4px; }
+
+    /* Holes grid */
+    .holes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 16px; }
+    .hole-card { border-radius: 12px; padding: 10px 6px 8px; transition: all 0.15s; }
+    .hole-num-row { display: flex; justify-content: center; align-items: center; margin-bottom: 8px; position: relative; height: 14px; }
+    .hole-num { font-size: 10px; color: #94A3B8; font-weight: 600; }
+    .clear-hole-btn { position: absolute; right: 0; top: -1px; background: none; border: none; color: #CBD5E1; font-size: 14px; cursor: pointer; padding: 0 2px; transition: color 0.15s; }
+    .clear-hole-btn:active { color: #DC2626; }
+    .hole-controls { display: flex; align-items: center; justify-content: space-between; }
+    .adj-btn { width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid #E2E8F0; background: #fff; color: #475569; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s; font-weight: 400; box-shadow: 0 1px 3px rgba(0,0,0,0.07); line-height: 1; }
+    .adj-btn:active { transform: scale(0.92); background: #F1F5F9; }
+    .adj-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+    .hole-score { font-family: 'Noto Serif SC', serif; font-size: 26px; font-weight: 700; text-align: center; flex: 1; line-height: 1; }
+    .dash { color: #CBD5E1; }
+    .score-label { font-size: 10px; text-align: center; margin-top: 6px; font-weight: 500; height: 14px; }
+
+    /* Bottom buttons */
+    .finish-wrap { padding: 16px 16px 0; display: flex; gap: 8px; }
+    .finish-btn { flex: 1; padding: 16px; border-radius: 14px; border: none; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #166534; color: #fff; box-shadow: 0 4px 16px rgba(22,101,52,0.3); }
+    .finish-btn:disabled { background: #E2E8F0; color: #94A3B8; box-shadow: none; }
+    .finish-btn:active:not(:disabled) { transform: scale(0.98); }
+    .reset-btn { padding: 16px 18px; border-radius: 14px; border: 1.5px solid #E2E8F0; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; background: #fff; color: #94A3B8; transition: all 0.15s; }
+    .reset-btn:active { background: #FEE2E2; color: #DC2626; border-color: #FCA5A5; }
+
+    /* Confirm dialog */
+    .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .confirm-box { background: #fff; border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 320px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); text-align: center; }
+    .confirm-icon { font-size: 36px; margin-bottom: 12px; }
+    .confirm-title { font-family: 'Noto Serif SC', serif; font-size: 18px; font-weight: 700; color: #1E293B; margin-bottom: 8px; }
+    .confirm-desc { font-size: 13px; color: #94A3B8; margin-bottom: 24px; line-height: 1.5; }
+    .confirm-btns { display: flex; gap: 10px; }
+    .confirm-cancel { flex: 1; padding: 13px; border-radius: 12px; border: 1.5px solid #E2E8F0; background: #fff; color: #64748B; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .confirm-ok { flex: 1; padding: 13px; border-radius: 12px; border: none; background: #DC2626; color: #fff; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; }
+
+    /* History */
+    .history-list { padding: 0 16px; margin-top: 16px; }
+    .history-empty { text-align: center; color: #94A3B8; padding: 60px 20px; font-size: 14px; line-height: 2; }
+    .history-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px; margin-bottom: 12px; position: relative; box-shadow: 0 1px 6px rgba(0,0,0,0.05); }
+    .hc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .hc-date { font-size: 12px; color: #94A3B8; margin-bottom: 4px; }
+    .hc-strokes { font-family: 'Noto Serif SC', serif; font-size: 34px; font-weight: 900; color: #1E293B; line-height: 1; }
+    .hc-strokes-lbl { font-size: 11px; color: #94A3B8; margin-top: 2px; }
+    .hc-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .hc-stats { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .hc-holes { display: flex; flex-wrap: wrap; gap: 4px; }
+    .hc-dot { width: 26px; height: 26px; border-radius: 6px; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+    .del-btn { position: absolute; top: 12px; right: 12px; background: #F1F5F9; border: none; color: #94A3B8; cursor: pointer; font-size: 14px; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .del-btn:active { background: #FEE2E2; color: #DC2626; }
+
+    /* Toast */
+    .toast { position: fixed; top: max(24px, env(safe-area-inset-top, 24px)); left: 50%; transform: translateX(-50%); background: #166534; color: #fff; padding: 12px 28px; border-radius: 30px; font-size: 14px; font-weight: 500; z-index: 999; box-shadow: 0 4px 20px rgba(22,101,52,0.4); animation: toastIn 0.3s ease; white-space: nowrap; }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+    /* Install banner */
+    .install-banner { margin: 12px 16px 0; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #1D4ED8; }
+    .install-banner-close { margin-left: auto; background: none; border: none; color: #93C5FD; font-size: 16px; cursor: pointer; padding: 0 4px; }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────
+const PAR = 72, HOLES = 18;
+const SCORE_LABELS = {
+  "-3": { label: "信天翁", color: "#B45309" },
+  "-2": { label: "老鹰",   color: "#D97706" },
+  "-1": { label: "小鸟",   color: "#16A34A" },
+  "0":  { label: "平标准", color: "#64748B" },
+  "1":  { label: "博忌",   color: "#DC2626" },
+  "2":  { label: "双博忌", color: "#B91C1C" },
+  "3":  { label: "三博忌", color: "#991B1B" },
+};
+function scoreStyle(val) {
+  if (val === null) return { bg: "#F8FAFC", color: "#CBD5E1", border: "1.5px solid #E2E8F0" };
+  if (val <= -2)    return { bg: "#FEF3C7", color: "#D97706", border: "1.5px solid #FCD34D" };
+  if (val === -1)   return { bg: "#DCFCE7", color: "#16A34A", border: "1.5px solid #86EFAC" };
+  if (val === 0)    return { bg: "#F1F5F9", color: "#64748B", border: "1.5px solid #CBD5E1" };
+  return               { bg: "#FEE2E2", color: "#DC2626", border: "1.5px solid #FCA5A5" };
+}
+
+// ── State ─────────────────────────────────────────────────────────────
+let scores   = Array(HOLES).fill(null);
+let history  = [];
+let tab      = "card";
+let showConfirm = false;
+let toastTimer  = null;
+let showInstall = true;
+let deferredPrompt = null;
+
+try { history = JSON.parse(localStorage.getItem("golf_pwa_v1") || "[]"); } catch {}
+try { showInstall = localStorage.getItem("golf_hide_install") !== "1"; } catch {}
+
+// ── PWA install prompt ────────────────────────────────────────────────
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  render();
+});
+window.addEventListener("appinstalled", () => {
+  deferredPrompt = null;
+  showInstall = false;
+  localStorage.setItem("golf_hide_install", "1");
+  render();
+});
+
+// ── Actions ───────────────────────────────────────────────────────────
+function setScore(hole, val) {
+  scores[hole - 1] = val;
+  render();
+}
+function clearHole(hole) {
+  scores[hole - 1] = null;
+  render();
+}
+function finish() {
+  const total = scores.reduce((a,b)=>a+(b??0),0);
+  const rec = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString("zh-CN",{year:"numeric",month:"2-digit",day:"2-digit",weekday:"short"}),
+    scores: [...scores], total,
+    totalStrokes: total + PAR,
+    birdies: scores.filter(s=>s===-1).length,
+    eagles:  scores.filter(s=>s<=-2).length,
+    bogeys:  scores.filter(s=>s>=1).length,
+  };
+  history = [rec, ...history];
+  localStorage.setItem("golf_pwa_v1", JSON.stringify(history));
+  scores = Array(HOLES).fill(null);
+  tab = "history";
+  showToast("✅ 已保存到历史记录");
+  render();
+}
+function deleteRecord(id) {
+  history = history.filter(r => r.id !== id);
+  localStorage.setItem("golf_pwa_v1", JSON.stringify(history));
+  render();
+}
+function showToast(msg) {
+  clearTimeout(toastTimer);
+  const el = document.getElementById("toast");
+  if (el) { el.textContent = msg; el.style.display = "block"; }
+  toastTimer = setTimeout(() => { const e = document.getElementById("toast"); if(e) e.style.display="none"; }, 2200);
+}
+async function triggerInstall() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === "accepted") { deferredPrompt = null; showInstall = false; }
+  render();
+}
+function hideInstall() {
+  showInstall = false;
+  localStorage.setItem("golf_hide_install","1");
+  render();
+}
+
+// ── Render ────────────────────────────────────────────────────────────
+function render() {
+  const filled = scores.filter(s=>s!==null).length;
+  const total  = scores.reduce((a,b)=>a+(b??0),0);
+  const strokes = total + PAR;
+  const allDone = filled === HOLES;
+  const birds  = scores.filter(s=>s===-1).length;
+  const eagles = scores.filter(s=>s<=-2).length;
+  const bogeys = scores.filter(s=>s>=1).length;
+  const pars   = scores.filter(s=>s===0).length;
+
+  // holes grid
+  let holesHtml = "";
+  for (let i=0; i<HOLES; i++) {
+    const h = i+1, v = scores[i];
+    const st = scoreStyle(v);
+    const lbl = v!==null ? SCORE_LABELS[String(v)] : null;
+    const scoreText = v===null ? `<span class="dash">–</span>` : (v>0?`+${v}`:v);
+    holesHtml += `
+      <div class="hole-card" style="background:${st.bg};border:${st.border}">
+        <div class="hole-num-row">
+          <span class="hole-num">第${h}洞</span>
+          ${v!==null ? `<button class="clear-hole-btn" onclick="clearHole(${h})">×</button>` : ""}
+        </div>
+        <div class="hole-controls">
+          <button class="adj-btn" onclick="setScore(${h},${(v??0)-1})" ${v!==null&&v<=-3?"disabled":""}>−</button>
+          <div class="hole-score" style="color:${st.color}">${scoreText}</div>
+          <button class="adj-btn" onclick="setScore(${h},${(v??0)+1})" ${v!==null&&v>=4?"disabled":""}>+</button>
+        </div>
+        <div class="score-label" style="color:${lbl?lbl.color:"#CBD5E1"}">${lbl?lbl.label:"未记录"}</div>
+      </div>`;
+  }
+
+  // history cards
+  let histHtml = "";
+  if (history.length === 0) {
+    histHtml = `<div class="history-empty"><div style="font-size:48px;margin-bottom:12px">⛳</div>暂无历史记录<br/>完成一轮后将显示在这里</div>`;
+  } else {
+    history.forEach(r => {
+      const dc = r.total<0?"#16A34A":r.total>0?"#DC2626":"#64748B";
+      const dt = r.total===0?"E":r.total>0?`+${r.total}`:String(r.total);
+      let dots = r.scores.map((s,i)=>{
+        const st=scoreStyle(s);
+        const t=s===null?"–":s===0?"E":s>0?`+${s}`:s;
+        return `<div class="hc-dot" style="background:${st.bg};color:${st.color};border:${st.border}">${t}</div>`;
+      }).join("");
+      histHtml += `
+        <div class="history-card">
+          <button class="del-btn" onclick="deleteRecord(${r.id})">×</button>
+          <div class="hc-top">
+            <div>
+              <div class="hc-date">${r.date}</div>
+              <div class="hc-strokes">${r.totalStrokes}</div>
+              <div class="hc-strokes-lbl">总杆数</div>
+            </div>
+            <div style="text-align:right;padding-right:32px">
+              <div style="font-family:'Noto Serif SC',serif;font-size:26px;font-weight:900;color:${dc};line-height:1">${dt}</div>
+              <div style="font-size:11px;color:#94A3B8;margin-top:4px">与标准杆</div>
+            </div>
+          </div>
+          <div class="hc-stats">
+            ${r.eagles>0?`<span class="hc-badge" style="background:#FEF3C7;color:#D97706">🦅 老鹰 ×${r.eagles}</span>`:""}
+            ${r.birdies>0?`<span class="hc-badge" style="background:#DCFCE7;color:#16A34A">🐦 小鸟 ×${r.birdies}</span>`:""}
+            ${r.bogeys>0?`<span class="hc-badge" style="background:#FEE2E2;color:#DC2626">博忌 ×${r.bogeys}</span>`:""}
+          </div>
+          <div class="hc-holes">${dots}</div>
+        </div>`;
+    });
+  }
+
+  const totalClass = total>0?"over":total===0?"even":"";
+  const totalText  = total===0?"E":total>0?`+${total}`:total;
+
+  // install banner: show if PWA not installed and prompt available or iOS
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isInStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+  const showBanner = showInstall && !isInStandalone && (deferredPrompt || isIOS);
+  const bannerHtml = showBanner ? `
+    <div class="install-banner">
+      <span>📲</span>
+      <span>${isIOS ? "点击 <b>分享</b> → <b>添加到主屏幕</b> 即可安装" : "点击安装到手机主屏幕"}</span>
+      ${!isIOS && deferredPrompt ? `<button onclick="triggerInstall()" style="background:#1D4ED8;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">安装</button>` : ""}
+      <button class="install-banner-close" onclick="hideInstall()">×</button>
+    </div>` : "";
+
+  document.getElementById("app").innerHTML = `
+    <div id="toast" class="toast" style="display:none"></div>
+
+    ${showConfirm ? `
+    <div class="confirm-overlay">
+      <div class="confirm-box">
+        <div class="confirm-icon">🔄</div>
+        <div class="confirm-title">重置本轮？</div>
+        <div class="confirm-desc">所有 18 洞的记录将被清除，此操作不可恢复。</div>
+        <div class="confirm-btns">
+          <button class="confirm-cancel" onclick="showConfirm=false;render()">取消</button>
+          <button class="confirm-ok" onclick="scores=Array(${HOLES}).fill(null);showConfirm=false;render()">确认重置</button>
+        </div>
+      </div>
+    </div>` : ""}
+
+    <div class="header">
+      <div class="header-sub">Golf Scorecard</div>
+      <div class="header-title">高尔夫记分卡</div>
+    </div>
+
+    ${bannerHtml}
+
+    <div class="tabs">
+      <button class="tab-btn ${tab==="card"?"active":""}" onclick="tab='card';render()">📋 记分</button>
+      <button class="tab-btn ${tab==="history"?"active":""}" onclick="tab='history';render()">📁 历史记录${history.length>0?` (${history.length})`:""}</button>
+    </div>
+
+    ${tab==="card" ? `
+      <div class="stat-bar">
+        <div class="stat-chip"><div class="stat-val" style="color:#D97706">${eagles}</div><div class="stat-lbl">🦅 老鹰</div></div>
+        <div class="stat-chip"><div class="stat-val" style="color:#16A34A">${birds}</div><div class="stat-lbl">🐦 小鸟</div></div>
+        <div class="stat-chip"><div class="stat-val" style="color:#64748B">${pars}</div><div class="stat-lbl">— 平标</div></div>
+        <div class="stat-chip"><div class="stat-val" style="color:#DC2626">${bogeys}</div><div class="stat-lbl">博忌+</div></div>
+      </div>
+      <div class="total-banner">
+        <div>
+          <div class="total-label">与标准杆</div>
+          <div class="total-score ${totalClass}">${totalText}</div>
+          <div class="progress-text">${filled} / 18 洞已记录</div>
+        </div>
+        <div style="text-align:right">
+          <div class="strokes-val">${filled>0?strokes:"—"}</div>
+          <div class="strokes-lbl">总杆数</div>
+        </div>
+      </div>
+      <div class="holes-grid">${holesHtml}</div>
+      <div class="finish-wrap">
+        <button class="finish-btn" ${allDone?"":"disabled"} onclick="finish()">
+          ${allDone?"✓ 完成本轮，保存记录":`还剩 ${HOLES-filled} 洞未记录`}
+        </button>
+        ${filled>0?`<button class="reset-btn" onclick="showConfirm=true;render()">重置</button>`:""}
+      </div>
+    ` : `
+      <div class="history-list">${histHtml}</div>
+    `}
+  `;
+
+  // restore toast if visible
+  if (toastTimer) {
+    const el = document.getElementById("toast");
+    if (el && el.textContent) el.style.display = "block";
+  }
+}
+
+render();
+</script>
+
+<!-- Service Worker registration -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
