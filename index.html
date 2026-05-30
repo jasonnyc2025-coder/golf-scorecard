@@ -481,12 +481,57 @@ function render() {
 render();
 </script>
 
-<!-- Service Worker registration -->
+<!-- Service Worker registration + update detection -->
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+  let waitingWorker = null;
+
+  // 显示更新提示条
+  function showUpdateBar() {
+    if (document.getElementById("sw-update-bar")) return;
+    const bar = document.createElement("div");
+    bar.id = "sw-update-bar";
+    bar.style.cssText = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);" +
+      "background:#166534;color:#fff;padding:12px 20px;border-radius:30px;font-size:14px;" +
+      "font-weight:500;z-index:999;display:flex;align-items:center;gap:12px;" +
+      "box-shadow:0 4px 24px rgba(0,0,0,0.22);white-space:nowrap;";
+    bar.innerHTML = '🆕 发现新版本 ' +
+      '<button onclick="applyUpdate()" style="background:rgba(255,255,255,0.22);' +
+      'border:1.5px solid rgba(255,255,255,0.5);color:#fff;border-radius:20px;' +
+      'padding:5px 14px;font-size:13px;font-weight:700;cursor:pointer;">立即更新</button>';
+    document.body.appendChild(bar);
+  }
+
+  window.applyUpdate = function () {
+    if (waitingWorker) waitingWorker.postMessage("skipWaiting");
+  };
+
+  // 新 SW 激活后自动刷新页面
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    window.location.reload();
   });
+
+  navigator.serviceWorker.register("sw.js").then(reg => {
+    // 每次加载检查是否有新版本
+    reg.update();
+
+    reg.addEventListener("updatefound", () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener("statechange", () => {
+        if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+          // 有新 SW 等待 → 显示更新条
+          waitingWorker = newWorker;
+          showUpdateBar();
+        }
+      });
+    });
+
+    // 首次加载时若已有 waiting 的 SW，也提示
+    if (reg.waiting && navigator.serviceWorker.controller) {
+      waitingWorker = reg.waiting;
+      showUpdateBar();
+    }
+  }).catch(() => {});
 }
 </script>
 </body>

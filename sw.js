@@ -1,4 +1,4 @@
-const CACHE = "golf-v3";
+const CACHE = "golf-v5";
 const ASSETS = [
   "./",
   "./index.html",
@@ -12,7 +12,8 @@ const ASSETS = [
 
 self.addEventListener("install", e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE).then(c => c.addAll(ASSETS))
+    // 不在这里 skipWaiting，等页面主动触发，避免打断用户操作
   );
 });
 
@@ -24,16 +25,23 @@ self.addEventListener("activate", e => {
   );
 });
 
+// 页面发消息 "skipWaiting" → 立即接管
+self.addEventListener("message", e => {
+  if (e.data === "skipWaiting") self.skipWaiting();
+});
+
 self.addEventListener("fetch", e => {
   e.respondWith(
     caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(res => {
-        if (!res || res.status !== 200 || res.type !== "basic") return res;
-        const clone = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
+      // 网络优先拿新版，失败时用缓存
+      const networkFetch = fetch(e.request).then(res => {
+        if (res && res.status === 200 && res.type === "basic") {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
         return res;
-      }).catch(() => caches.match("./index.html"));
+      }).catch(() => cached || caches.match("./index.html"));
+      return cached || networkFetch;
     })
   );
 });
