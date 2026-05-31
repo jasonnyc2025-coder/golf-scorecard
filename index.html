@@ -203,8 +203,9 @@ function dbDelete(id) {
 let scores   = Array(HOLES).fill(null);
 let history  = [];
 let tab      = "card";
-let showConfirm = false;
-let showMenu    = false;
+let showConfirm      = false;
+let showClearConfirm = false;
+let showMenu         = false;
 let toastTimer  = null;
 let showInstall = true;
 let deferredPrompt = null;
@@ -282,6 +283,13 @@ async function finish() {
   tab = "history";
   showToast("✅ 已保存到历史记录");
   render();
+}
+async function clearAllHistory() {
+  for (const r of history) await dbDelete(r.id);
+  history = [];
+  showClearConfirm = false;
+  render();
+  showToast("🗑 全部历史记录已清除");
 }
 async function deleteRecord(id) {
   await dbDelete(id);
@@ -444,6 +452,19 @@ function render() {
       </div>
     </div>` : ""}
 
+    ${showClearConfirm ? `
+    <div class="confirm-overlay">
+      <div class="confirm-box">
+        <div class="confirm-icon">🗑</div>
+        <div class="confirm-title">清除全部历史？</div>
+        <div class="confirm-desc">共 ${history.length} 条记录将被永久删除，无法恢复。</div>
+        <div class="confirm-btns">
+          <button class="confirm-cancel" onclick="showClearConfirm=false;render()">取消</button>
+          <button class="confirm-ok" onclick="clearAllHistory()">确认清除</button>
+        </div>
+      </div>
+    </div>` : ""}
+
     <div class="header">
       <div class="header-logo">⛳</div>
       <div class="header-sub">Golf Scorecard</div>
@@ -455,6 +476,7 @@ function render() {
         ${deferredPrompt && !isInStandalone ? `<button class="menu-item" onclick="showMenu=false;triggerInstall()">📲 安装APP</button>` : ""}
         <button class="menu-item" onclick="showMenu=false;render();exportData()">📥 导出备份到手机</button>
         <button class="menu-item" onclick="showMenu=false;render();importData()">📤 从备份恢复</button>
+        ${history.length>0?`<button class="menu-item" style="color:#DC2626" onclick="showMenu=false;showClearConfirm=true;render()">🗑 清除全部历史</button>`:"" }
       </div>` : ""}
     </div>
 
