@@ -1,4 +1,4 @@
-const CACHE = "golf-v6";
+const CACHE = "golf-v7";
 
 // 只预缓存静态资源，不缓存 index.html
 const STATIC = [
