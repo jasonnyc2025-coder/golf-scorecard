@@ -209,8 +209,24 @@ let toastTimer  = null;
 let showInstall = true;
 let deferredPrompt = null;
 
-// 初始化：从 IndexedDB 加载，同时迁移旧 localStorage 数据
+// 当前轮次草稿存取（localStorage，小数据用它即可）
+const DRAFT_KEY = "golf_draft";
+function saveDraft() {
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(scores)); } catch {}
+}
+function loadDraft() {
+  try {
+    const d = localStorage.getItem(DRAFT_KEY);
+    if (d) scores = JSON.parse(d);
+  } catch {}
+}
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); } catch {}
+}
+
+// 初始化：恢复草稿 + 从 IndexedDB 加载历史
 async function initDB() {
+  loadDraft(); // 先恢复未完成的轮次
   try {
     const old = localStorage.getItem("golf_pwa_v1");
     if (old) {
@@ -240,10 +256,12 @@ window.addEventListener("appinstalled", () => {
 // ── Actions ───────────────────────────────────────────────────────────
 function setScore(hole, val) {
   scores[hole - 1] = val;
+  saveDraft();
   render();
 }
 function clearHole(hole) {
   scores[hole - 1] = null;
+  saveDraft();
   render();
 }
 async function finish() {
@@ -260,6 +278,7 @@ async function finish() {
   await dbAdd(rec);
   history = [rec, ...history];
   scores = Array(HOLES).fill(null);
+  clearDraft();
   tab = "history";
   showToast("✅ 已保存到历史记录");
   render();
@@ -420,7 +439,7 @@ function render() {
         <div class="confirm-desc">所有 18 洞的记录将被清除，此操作不可恢复。</div>
         <div class="confirm-btns">
           <button class="confirm-cancel" onclick="showConfirm=false;render()">取消</button>
-          <button class="confirm-ok" onclick="scores=Array(${HOLES}).fill(null);showConfirm=false;render()">确认重置</button>
+          <button class="confirm-ok" onclick="scores=Array(${HOLES}).fill(null);clearDraft();showConfirm=false;render()">确认重置</button>
         </div>
       </div>
     </div>` : ""}
