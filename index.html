@@ -204,8 +204,9 @@ let scores   = Array(HOLES).fill(null);
 let history  = [];
 let tab      = "card";
 let showConfirm      = false;
-let showClearConfirm = false;
-let showMenu         = false;
+let showClearConfirm  = false;
+let showDeleteId      = null;   // 待确认删除的单条 id
+let showMenu          = false;
 let toastTimer  = null;
 let showInstall = true;
 let deferredPrompt = null;
@@ -291,9 +292,14 @@ async function clearAllHistory() {
   render();
   showToast("🗑 全部历史记录已清除");
 }
+function confirmDelete(id) {
+  showDeleteId = id;
+  render();
+}
 async function deleteRecord(id) {
   await dbDelete(id);
   history = history.filter(r => r.id !== id);
+  showDeleteId = null;
   render();
 }
 // ── 备份 / 恢复 ───────────────────────────────────────────────────────
@@ -327,6 +333,16 @@ function importData() {
     } catch { showToast('❌ 文件格式有误，恢复失败'); }
   };
   input.click();
+}
+
+async function forceRefresh() {
+  try {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const r of regs) await r.unregister();
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+  } catch {}
+  window.location.reload(true);
 }
 
 function showToast(msg) {
@@ -399,7 +415,7 @@ function render() {
       }).join("");
       histHtml += `
         <div class="history-card">
-          <button class="del-btn" onclick="deleteRecord(${r.id})">×</button>
+          <button class="del-btn" onclick="confirmDelete(${r.id})">×</button>
           <div class="hc-top">
             <div>
               <div class="hc-date">${r.date}</div>
@@ -452,6 +468,19 @@ function render() {
       </div>
     </div>` : ""}
 
+    ${showDeleteId !== null ? `
+    <div class="confirm-overlay">
+      <div class="confirm-box">
+        <div class="confirm-icon">🗑</div>
+        <div class="confirm-title">删除这条记录？</div>
+        <div class="confirm-desc">此操作不可恢复。</div>
+        <div class="confirm-btns">
+          <button class="confirm-cancel" onclick="showDeleteId=null;render()">取消</button>
+          <button class="confirm-ok" onclick="deleteRecord(${showDeleteId})">确认删除</button>
+        </div>
+      </div>
+    </div>` : ""}
+
     ${showClearConfirm ? `
     <div class="confirm-overlay">
       <div class="confirm-box">
@@ -476,7 +505,8 @@ function render() {
         ${deferredPrompt && !isInStandalone ? `<button class="menu-item" onclick="showMenu=false;triggerInstall()">📲 安装APP</button>` : ""}
         <button class="menu-item" onclick="showMenu=false;render();exportData()">📥 导出备份到手机</button>
         <button class="menu-item" onclick="showMenu=false;render();importData()">📤 从备份恢复</button>
-        ${history.length>0?`<button class="menu-item" style="color:#DC2626" onclick="showMenu=false;showClearConfirm=true;render()">🗑 清除全部历史</button>`:"" }
+        ${history.length>0?`<button class="menu-item" style="color:#DC2626" onclick="showMenu=false;showClearConfirm=true;render()">🗑 清除全部历史</button>`:""}
+        <button class="menu-item" style="color:#2563EB" onclick="forceRefresh()">🔄 强制刷新到最新版</button>
       </div>` : ""}
     </div>
 
