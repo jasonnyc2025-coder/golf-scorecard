@@ -94,6 +94,8 @@
     .hole-score { font-family: 'Noto Serif SC', serif; font-size: 32px; font-weight: 900; text-align: center; line-height: 1; width: 100%; }
     .dash { color: #94A3B8; font-size: 26px; }
     .score-label { font-size: 14px; text-align: center; font-weight: 700; letter-spacing: 0.2px; width: 100%; }
+    .par-btn { width: 100%; padding: 6px 0; border-radius: 8px; border: 2px solid #1D4ED8; background: #1D4ED8; color: #fff; font-size: 15px; font-weight: 800; cursor: pointer; letter-spacing: 1px; transition: all 0.1s; }
+    .par-btn:active { background: #1E40AF; }
 
     /* Bottom buttons */
     .finish-wrap { padding: 16px 8px 0; display: flex; gap: 8px; }
@@ -345,7 +347,10 @@ function render() {
         </div>
         <div class="hole-body">
           <button class="adj-btn" onclick="setScore(${h},${(v??0)+1})" ${v!==null&&v>=4?"disabled":""}>+</button>
-          <div class="hole-score" style="color:${st.color}">${scoreText}</div>
+          ${v===null
+            ? `<button class="par-btn" onclick="setScore(${h},0)">平</button>`
+            : `<div class="hole-score" style="color:${st.color}">${scoreText}</div>`
+          }
           <button class="adj-btn" onclick="setScore(${h},${(v??0)-1})" ${v!==null&&v<=-3?"disabled":""}>−</button>
           <div class="score-label" style="color:${lbl?lbl.color:"#94A3B8"}">${lbl?lbl.label:"未记录"}</div>
         </div>
