@@ -32,15 +32,15 @@
       -webkit-tap-highlight-color: transparent;
       -webkit-font-smoothing: antialiased;
     }
-    #app { max-width: 500px; margin: 0 auto; padding: 0 0 100px 0; min-height: 100vh; background: #F0F4F0; }
+    #app { max-width: 540px; margin: 0 auto; padding: 0 0 100px 0; min-height: 100vh; background: #F0F4F0; }
 
     /* Safe area for iPhone notch */
-    .header { padding-top: max(36px, env(safe-area-inset-top, 36px)); }
+    .header { padding-top: max(20px, env(safe-area-inset-top, 20px)); }
 
     /* Header */
     .header {
       background: linear-gradient(135deg, #166534 0%, #15803D 60%, #22C55E 100%);
-      padding-bottom: 28px;
+      padding-bottom: 16px;
       padding-left: 20px;
       padding-right: 20px;
       text-align: center;
@@ -48,49 +48,57 @@
       overflow: hidden;
     }
     .header::before { content: '⛳'; position: absolute; font-size: 120px; opacity: 0.07; right: -20px; top: -10px; }
+    .header-logo { font-size: 52px; line-height: 1; margin-bottom: 6px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.25)); }
     .header-sub { font-size: 11px; color: rgba(255,255,255,0.7); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
     .header-title { font-family: 'Noto Serif SC', serif; font-size: 26px; font-weight: 900; color: #fff; letter-spacing: 1px; }
-    .install-fab { position: absolute; top: max(12px, env(safe-area-inset-top, 12px)); right: 14px; background: rgba(255,255,255,0.22); border: 1.5px solid rgba(255,255,255,0.5); color: #fff; border-radius: 20px; padding: 6px 13px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(4px); transition: background 0.15s; white-space: nowrap; }
-    .install-fab:active { background: rgba(255,255,255,0.35); }
+    .menu-fab { position: absolute; top: max(10px, env(safe-area-inset-top, 10px)); right: 14px; background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4); color: #fff; border-radius: 50%; width: 36px; height: 36px; font-size: 22px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; letter-spacing: -1px; line-height: 1; }
+    .menu-fab:active { background: rgba(255,255,255,0.35); }
+    .menu-backdrop { position: fixed; inset: 0; z-index: 90; }
+    .menu-dropdown { position: absolute; top: max(52px, calc(env(safe-area-inset-top, 0px) + 52px)); right: 10px; background: #fff; border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); z-index: 100; min-width: 190px; overflow: hidden; }
+    .menu-item { display: block; width: 100%; padding: 15px 18px; border: none; background: none; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500; color: #1E293B; text-align: left; cursor: pointer; border-bottom: 1px solid #F1F5F9; }
+    .menu-item:last-child { border-bottom: none; }
+    .menu-item:active { background: #F8FAFC; }
 
     /* Tabs */
-    .tabs { display: flex; margin: 16px 16px 0; background: #fff; border-radius: 12px; padding: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .tabs { display: flex; margin: 16px 8px 0; background: #fff; border-radius: 12px; padding: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
     .tab-btn { flex: 1; padding: 10px 0; background: none; border: none; color: #94A3B8; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 9px; transition: all 0.2s; }
     .tab-btn.active { background: #166534; color: #fff; box-shadow: 0 2px 8px rgba(22,101,52,0.25); }
 
     /* Stat bar */
-    .stat-bar { display: flex; gap: 8px; padding: 14px 16px; }
+    .stat-bar { display: flex; gap: 8px; padding: 14px 8px; }
     .stat-chip { flex: 1; background: #fff; border-radius: 12px; padding: 12px 6px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #E2E8F0; }
-    .stat-val { font-family: 'Noto Serif SC', serif; font-size: 22px; font-weight: 700; line-height: 1; }
-    .stat-lbl { font-size: 10px; color: #94A3B8; letter-spacing: 0.5px; margin-top: 4px; }
+    .stat-val { font-family: 'Noto Serif SC', serif; font-size: 30px; font-weight: 700; line-height: 1; }
+    .stat-lbl { font-size: 16px; color: #94A3B8; letter-spacing: 0.5px; margin-top: 5px; }
 
     /* Total banner */
-    .total-banner { margin: 0 16px 14px; background: #fff; border-radius: 16px; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border: 1px solid #E2E8F0; }
+    .total-banner { margin: 0 8px 14px; background: #fff; border-radius: 16px; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border: 1px solid #E2E8F0; }
     .total-label { font-size: 11px; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
     .total-score { font-family: 'Noto Serif SC', serif; font-size: 44px; font-weight: 900; color: #16A34A; line-height: 1; }
     .total-score.over { color: #DC2626; }
     .total-score.even { color: #64748B; }
     .progress-text { font-size: 12px; color: #94A3B8; margin-top: 6px; }
     .strokes-val { font-family: 'Noto Serif SC', serif; font-size: 30px; font-weight: 700; color: #1E293B; line-height: 1; }
-    .strokes-lbl { font-size: 11px; color: #94A3B8; text-align: right; margin-top: 4px; }
+    .strokes-lbl { font-size: 15px; color: #94A3B8; text-align: right; margin-top: 4px; }
 
     /* Holes grid */
-    .holes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 16px; }
-    .hole-card { border-radius: 12px; padding: 10px 6px 8px; transition: all 0.15s; }
-    .hole-num-row { display: flex; justify-content: center; align-items: center; margin-bottom: 8px; position: relative; height: 14px; }
-    .hole-num { font-size: 10px; color: #94A3B8; font-weight: 600; }
-    .clear-hole-btn { position: absolute; right: 0; top: -1px; background: none; border: none; color: #CBD5E1; font-size: 14px; cursor: pointer; padding: 0 2px; transition: color 0.15s; }
-    .clear-hole-btn:active { color: #DC2626; }
-    .hole-controls { display: flex; align-items: center; justify-content: space-between; }
-    .adj-btn { width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid #E2E8F0; background: #fff; color: #475569; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s; font-weight: 400; box-shadow: 0 1px 3px rgba(0,0,0,0.07); line-height: 1; }
-    .adj-btn:active { transform: scale(0.92); background: #F1F5F9; }
-    .adj-btn:disabled { opacity: 0.25; cursor: not-allowed; }
-    .hole-score { font-family: 'Noto Serif SC', serif; font-size: 26px; font-weight: 700; text-align: center; flex: 1; line-height: 1; }
-    .dash { color: #CBD5E1; }
-    .score-label { font-size: 10px; text-align: center; margin-top: 6px; font-weight: 500; height: 14px; }
+    .holes-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; padding: 0 7px; }
+    .hole-card { border-radius: 14px; overflow: hidden; transition: all 0.15s; box-shadow: 0 2px 8px rgba(0,0,0,0.13); }
+    .hole-hdr { display: flex; align-items: center; justify-content: center; padding: 8px 4px; position: relative; }
+    .hole-num { font-size: 20px; font-weight: 900; letter-spacing: 0.2px; }
+    .clear-hole-btn { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 14px; cursor: pointer; padding: 0 2px; opacity: 0.7; line-height: 1; }
+    .clear-hole-btn:active { opacity: 1; }
+    .hole-body { padding: 8px 6px 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .adj-btn { width: 100%; height: 30px; border-radius: 8px; border: 2px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.82); color: #1E293B; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s; font-weight: 500; box-shadow: 0 1px 4px rgba(0,0,0,0.1); line-height: 1; }
+    .adj-btn:active { transform: scale(0.95); background: #fff; }
+    .adj-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+    .hole-score { font-family: 'Noto Serif SC', serif; font-size: 32px; font-weight: 900; text-align: center; line-height: 1; width: 100%; }
+    .dash { color: #94A3B8; font-size: 26px; }
+    .score-label { font-size: 14px; text-align: center; font-weight: 700; letter-spacing: 0.2px; width: 100%; }
+    .par-btn { width: 100%; padding: 6px 0; border-radius: 8px; border: 1.5px solid #94A3B8; background: rgba(255,255,255,0.6); color: #64748B; font-size: 13px; font-weight: 600; cursor: pointer; letter-spacing: 1px; transition: all 0.1s; }
+    .par-btn:active { background: #E2E8F0; }
 
     /* Bottom buttons */
-    .finish-wrap { padding: 16px 16px 0; display: flex; gap: 8px; }
+    .finish-wrap { padding: 16px 8px 0; display: flex; gap: 8px; }
     .finish-btn { flex: 1; padding: 16px; border-radius: 14px; border: none; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #166534; color: #fff; box-shadow: 0 4px 16px rgba(22,101,52,0.3); }
     .finish-btn:disabled { background: #E2E8F0; color: #94A3B8; box-shadow: none; }
     .finish-btn:active:not(:disabled) { transform: scale(0.98); }
@@ -127,8 +135,37 @@
     @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
     /* Install banner */
-    .install-banner { margin: 12px 16px 0; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #1D4ED8; }
+    .install-banner { margin: 12px 8px 0; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #1D4ED8; }
     .install-banner-close { margin-left: auto; background: none; border: none; color: #93C5FD; font-size: 16px; cursor: pointer; padding: 0 4px; }
+
+    /* Location bar */
+    .location-bar { margin: 8px 8px 0; display: flex; align-items: center; background: #fff; border: 1.5px solid #D1FAE5; border-radius: 12px; padding: 10px 14px; gap: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+    .location-set-btn { background: none; border: none; color: #166534; font-size: 14px; font-weight: 500; cursor: pointer; flex: 1; text-align: left; padding: 0; }
+    .location-name { flex: 1; font-size: 14px; font-weight: 600; color: #166534; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .location-clear-btn { background: none; border: none; color: #94A3B8; font-size: 18px; cursor: pointer; padding: 0 2px; line-height: 1; }
+    .location-clear-btn:active { color: #DC2626; }
+    .location-change-btn { background: none; border: 1px solid #D1FAE5; border-radius: 8px; color: #166534; font-size: 12px; font-weight: 500; cursor: pointer; padding: 4px 8px; white-space: nowrap; }
+
+    /* Location modal */
+    .location-modal-box { background: #fff; border-radius: 20px; padding: 24px 20px; width: 100%; max-width: 340px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .location-modal-title { font-family: 'Noto Serif SC', serif; font-size: 18px; font-weight: 700; color: #1E293B; margin-bottom: 16px; text-align: center; }
+    .location-search-btn { width: 100%; padding: 13px; border-radius: 12px; border: none; background: #166534; color: #fff; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px; }
+    .location-search-btn:active { background: #15803D; }
+    .location-search-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+    .location-error { font-size: 12px; color: #DC2626; background: #FEE2E2; border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; line-height: 1.4; }
+    .location-results { max-height: 220px; overflow-y: auto; border: 1.5px solid #E2E8F0; border-radius: 12px; margin-bottom: 12px; }
+    .course-item { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 12px 14px; border: none; background: none; cursor: pointer; border-bottom: 1px solid #F1F5F9; text-align: left; gap: 8px; }
+    .course-item:last-child { border-bottom: none; }
+    .course-item:active { background: #F0FDF4; }
+    .course-name { font-size: 14px; font-weight: 500; color: #1E293B; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .course-dist { font-size: 12px; color: #94A3B8; white-space: nowrap; }
+    .location-divider { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #94A3B8; font-size: 12px; }
+    .location-divider::before, .location-divider::after { content: ""; flex: 1; height: 1px; background: #E2E8F0; }
+    .location-manual-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .location-manual-input { flex: 1; padding: 11px 12px; border: 1.5px solid #E2E8F0; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 14px; color: #1E293B; outline: none; }
+    .location-manual-input:focus { border-color: #166534; }
+    .location-manual-btn { padding: 11px 14px; border-radius: 10px; border: none; background: #166534; color: #fff; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .location-cancel-btn { width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid #E2E8F0; background: #fff; color: #64748B; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -147,49 +184,133 @@ const SCORE_LABELS = {
   "3":  { label: "三博忌", color: "#991B1B" },
 };
 function scoreStyle(val) {
-  if (val === null) return { bg: "#F8FAFC", color: "#CBD5E1", border: "1.5px solid #E2E8F0" };
-  if (val <= -2)    return { bg: "#FEF3C7", color: "#D97706", border: "1.5px solid #FCD34D" };
-  if (val === -1)   return { bg: "#DCFCE7", color: "#16A34A", border: "1.5px solid #86EFAC" };
-  if (val === 0)    return { bg: "#F1F5F9", color: "#64748B", border: "1.5px solid #CBD5E1" };
-  return               { bg: "#FEE2E2", color: "#DC2626", border: "1.5px solid #FCA5A5" };
+  if (val === null) return { bg: "#CBD5E1", color: "#64748B", border: "2px solid #94A3B8", hdrBg: "#64748B",  hdrColor: "#fff" };
+  if (val <= -2)    return { bg: "#FCD34D", color: "#78350F", border: "2px solid #F59E0B", hdrBg: "#B45309",  hdrColor: "#fff" };
+  if (val === -1)   return { bg: "#4ADE80", color: "#14532D", border: "2px solid #16A34A", hdrBg: "#15803D",  hdrColor: "#fff" };
+  if (val === 0)    return { bg: "#93C5FD", color: "#1E3A8A", border: "2px solid #3B82F6", hdrBg: "#1D4ED8",  hdrColor: "#fff" };
+  if (val === 1)    return { bg: "#FCA5A5", color: "#7F1D1D", border: "2px solid #EF4444", hdrBg: "#DC2626",  hdrColor: "#fff" };
+  return               { bg: "#EF4444", color: "#fff",     border: "2px solid #DC2626", hdrBg: "#991B1B",  hdrColor: "#fff" };
+}
+
+// ── IndexedDB ─────────────────────────────────────────────────────────
+const DB_NAME = 'golf_scorecard', DB_VER = 1, STORE = 'history';
+function openDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(DB_NAME, DB_VER);
+    r.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE))
+        db.createObjectStore(STORE, { keyPath: 'id' });
+    };
+    r.onsuccess = e => res(e.target.result);
+    r.onerror   = e => rej(e.target.error);
+  });
+}
+function dbGetAll() {
+  return openDB().then(db => new Promise((res, rej) => {
+    const r = db.transaction(STORE,'readonly').objectStore(STORE).getAll();
+    r.onsuccess = e => res(e.target.result.sort((a,b) => b.id - a.id));
+    r.onerror   = e => rej(e.target.error);
+  }));
+}
+function dbAdd(rec) {
+  return openDB().then(db => new Promise((res, rej) => {
+    const r = db.transaction(STORE,'readwrite').objectStore(STORE).put(rec);
+    r.onsuccess = () => res();
+    r.onerror   = e => rej(e.target.error);
+  }));
+}
+function dbDelete(id) {
+  return openDB().then(db => new Promise((res, rej) => {
+    const r = db.transaction(STORE,'readwrite').objectStore(STORE).delete(id);
+    r.onsuccess = () => res();
+    r.onerror   = e => rej(e.target.error);
+  }));
 }
 
 // ── State ─────────────────────────────────────────────────────────────
 let scores   = Array(HOLES).fill(null);
 let history  = [];
 let tab      = "card";
-let showConfirm = false;
+let showConfirm      = false;
+let showClearConfirm  = false;
+let showDeleteId      = null;   // 待确认删除的单条 id
+let showMenu          = false;
 let toastTimer  = null;
 let showInstall = true;
 let deferredPrompt = null;
 
-try { history = JSON.parse(localStorage.getItem("golf_pwa_v1") || "[]"); } catch {}
-try { showInstall = localStorage.getItem("golf_hide_install") !== "1"; } catch {}
+let courseLocation    = null;   // { name: "..." }
+let showLocationModal = false;
+let locationResults   = [];
+let locationLoading   = false;
+let locationError     = null;
+let locationManualName = "";
+
+// 当前轮次草稿存取（localStorage，小数据用它即可）
+const DRAFT_KEY = "golf_draft";
+function saveDraft() {
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ scores, courseLocation })); } catch {}
+}
+function loadDraft() {
+  try {
+    const d = localStorage.getItem(DRAFT_KEY);
+    if (d) {
+      const parsed = JSON.parse(d);
+      if (Array.isArray(parsed)) {
+        scores = parsed;
+      } else {
+        scores = parsed.scores || Array(HOLES).fill(null);
+        courseLocation = parsed.courseLocation || null;
+      }
+    }
+  } catch {}
+}
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); } catch {}
+}
+
+// 初始化：恢复草稿 + 从 IndexedDB 加载历史
+async function initDB() {
+  loadDraft(); // 先恢复未完成的轮次
+  try {
+    const old = localStorage.getItem("golf_pwa_v1");
+    if (old) {
+      const records = JSON.parse(old);
+      for (const r of records) await dbAdd(r);
+      localStorage.removeItem("golf_pwa_v1");
+    }
+  } catch {}
+  history = await dbGetAll();
+  render();
+}
+initDB();
 
 // ── PWA install prompt ────────────────────────────────────────────────
 window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
   deferredPrompt = e;
-  showInstall = true; // reset in case user dismissed banner before
+  showInstall = true;
   render();
 });
 window.addEventListener("appinstalled", () => {
   deferredPrompt = null;
   showInstall = false;
-  localStorage.setItem("golf_hide_install", "1");
   render();
 });
 
 // ── Actions ───────────────────────────────────────────────────────────
 function setScore(hole, val) {
   scores[hole - 1] = val;
+  saveDraft();
   render();
 }
 function clearHole(hole) {
   scores[hole - 1] = null;
+  saveDraft();
   render();
 }
-function finish() {
+async function finish() {
   const total = scores.reduce((a,b)=>a+(b??0),0);
   const rec = {
     id: Date.now(),
@@ -199,19 +320,76 @@ function finish() {
     birdies: scores.filter(s=>s===-1).length,
     eagles:  scores.filter(s=>s<=-2).length,
     bogeys:  scores.filter(s=>s>=1).length,
+    location: courseLocation?.name || null,
   };
+  await dbAdd(rec);
   history = [rec, ...history];
-  localStorage.setItem("golf_pwa_v1", JSON.stringify(history));
   scores = Array(HOLES).fill(null);
+  clearDraft();
   tab = "history";
   showToast("✅ 已保存到历史记录");
   render();
 }
-function deleteRecord(id) {
-  history = history.filter(r => r.id !== id);
-  localStorage.setItem("golf_pwa_v1", JSON.stringify(history));
+async function clearAllHistory() {
+  for (const r of history) await dbDelete(r.id);
+  history = [];
+  showClearConfirm = false;
+  render();
+  showToast("🗑 全部历史记录已清除");
+}
+function confirmDelete(id) {
+  showDeleteId = id;
   render();
 }
+async function deleteRecord(id) {
+  await dbDelete(id);
+  history = history.filter(r => r.id !== id);
+  showDeleteId = null;
+  render();
+}
+// ── 备份 / 恢复 ───────────────────────────────────────────────────────
+function exportData() {
+  const payload = JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), history }, null, 2);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([payload], { type: 'application/json' }));
+  a.download = `高尔夫记录_${new Date().toLocaleDateString('zh-CN').replace(/\//g,'-')}.json`;
+  a.click();
+  showToast('📁 备份已保存到下载文件夹');
+}
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      const records = Array.isArray(data) ? data : (data.history || []);
+      if (!records.length) throw new Error();
+      const existingIds = new Set(history.map(r => r.id));
+      let added = 0;
+      for (const r of records) {
+        if (!existingIds.has(r.id)) { await dbAdd(r); added++; }
+      }
+      history = await dbGetAll();
+      render();
+      showToast(`✅ 已恢复 ${added} 条记录`);
+    } catch { showToast('❌ 文件格式有误，恢复失败'); }
+  };
+  input.click();
+}
+
+async function forceRefresh() {
+  try {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const r of regs) await r.unregister();
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+  } catch {}
+  window.location.reload(true);
+}
+
 function showToast(msg) {
   clearTimeout(toastTimer);
   const el = document.getElementById("toast");
@@ -228,6 +406,63 @@ async function triggerInstall() {
 function hideInstall() {
   showInstall = false;
   localStorage.setItem("golf_hide_install","1");
+  render();
+}
+
+// ── 位置搜索 ──────────────────────────────────────────────────────────
+function distKm(lat1, lon1, lat2, lon2) {
+  const R = 6371, toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+async function searchNearbyCourses() {
+  locationLoading = true;
+  locationError = null;
+  locationResults = [];
+  render();
+  try {
+    const pos = await new Promise((res, rej) =>
+      navigator.geolocation.getCurrentPosition(res, rej, { timeout: 12000 })
+    );
+    const { latitude: lat, longitude: lon } = pos.coords;
+    const query = `[out:json][timeout:20];(node["leisure"="golf_course"](around:25000,${lat},${lon});way["leisure"="golf_course"](around:25000,${lat},${lon});relation["leisure"="golf_course"](around:25000,${lat},${lon}););out center;`;
+    const resp = await fetch("https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query));
+    const data = await resp.json();
+    const seen = new Set();
+    locationResults = data.elements
+      .map(el => {
+        const elLat = el.lat ?? el.center?.lat;
+        const elLon = el.lon ?? el.center?.lon;
+        const name = el.tags?.["name:zh"] || el.tags?.name || "未命名球场";
+        const dist = distKm(lat, lon, elLat, elLon);
+        return { name, dist };
+      })
+      .filter(c => !isNaN(c.dist))
+      .sort((a, b) => a.dist - b.dist)
+      .filter(c => { if (seen.has(c.name)) return false; seen.add(c.name); return true; });
+    if (locationResults.length === 0) locationError = "附近25公里内未找到球场，请手动输入";
+  } catch (e) {
+    locationError = e.code === 1 ? "位置权限被拒绝，请在浏览器允许后重试" : "定位或网络失败，请手动输入球场名称";
+  }
+  locationLoading = false;
+  render();
+}
+
+function selectLocation(name) {
+  courseLocation = { name };
+  showLocationModal = false;
+  locationResults = [];
+  locationError = null;
+  locationManualName = "";
+  saveDraft();
+  render();
+}
+
+function clearLocation() {
+  courseLocation = null;
+  saveDraft();
   render();
 }
 
@@ -250,17 +485,20 @@ function render() {
     const lbl = v!==null ? SCORE_LABELS[String(v)] : null;
     const scoreText = v===null ? `<span class="dash">–</span>` : (v>0?`+${v}`:v);
     holesHtml += `
-      <div class="hole-card" style="background:${st.bg};border:${st.border}">
-        <div class="hole-num-row">
-          <span class="hole-num">第${h}洞</span>
-          ${v!==null ? `<button class="clear-hole-btn" onclick="clearHole(${h})">×</button>` : ""}
+      <div class="hole-card" style="background:${st.bg}">
+        <div class="hole-hdr" style="background:${st.hdrBg}">
+          <span class="hole-num" style="color:${st.hdrColor}">第${h}洞</span>
+          ${v!==null ? `<button class="clear-hole-btn" onclick="clearHole(${h})" style="color:${st.hdrColor}">×</button>` : ""}
         </div>
-        <div class="hole-controls">
-          <button class="adj-btn" onclick="setScore(${h},${(v??0)-1})" ${v!==null&&v<=-3?"disabled":""}>−</button>
-          <div class="hole-score" style="color:${st.color}">${scoreText}</div>
+        <div class="hole-body">
           <button class="adj-btn" onclick="setScore(${h},${(v??0)+1})" ${v!==null&&v>=4?"disabled":""}>+</button>
+          ${v===null
+            ? `<button class="par-btn" onclick="setScore(${h},0)">平</button>`
+            : `<div class="hole-score" style="color:${st.color}">${scoreText}</div>`
+          }
+          <button class="adj-btn" onclick="setScore(${h},${(v??0)-1})" ${v!==null&&v<=-3?"disabled":""}>−</button>
+          <div class="score-label" style="color:${lbl?lbl.color:"#94A3B8"}">${lbl?lbl.label:"未记录"}</div>
         </div>
-        <div class="score-label" style="color:${lbl?lbl.color:"#CBD5E1"}">${lbl?lbl.label:"未记录"}</div>
       </div>`;
   }
 
@@ -279,10 +517,10 @@ function render() {
       }).join("");
       histHtml += `
         <div class="history-card">
-          <button class="del-btn" onclick="deleteRecord(${r.id})">×</button>
+          <button class="del-btn" onclick="confirmDelete(${r.id})">×</button>
           <div class="hc-top">
             <div>
-              <div class="hc-date">${r.date}</div>
+              <div class="hc-date">${r.date}${r.location ? ` &nbsp;📍 ${r.location}` : ""}</div>
               <div class="hc-strokes">${r.totalStrokes}</div>
               <div class="hc-strokes-lbl">总杆数</div>
             </div>
@@ -327,15 +565,78 @@ function render() {
         <div class="confirm-desc">所有 18 洞的记录将被清除，此操作不可恢复。</div>
         <div class="confirm-btns">
           <button class="confirm-cancel" onclick="showConfirm=false;render()">取消</button>
-          <button class="confirm-ok" onclick="scores=Array(${HOLES}).fill(null);showConfirm=false;render()">确认重置</button>
+          <button class="confirm-ok" onclick="scores=Array(${HOLES}).fill(null);clearDraft();showConfirm=false;render()">确认重置</button>
         </div>
       </div>
     </div>` : ""}
 
+    ${showDeleteId !== null ? `
+    <div class="confirm-overlay">
+      <div class="confirm-box">
+        <div class="confirm-icon">🗑</div>
+        <div class="confirm-title">删除这条记录？</div>
+        <div class="confirm-desc">此操作不可恢复。</div>
+        <div class="confirm-btns">
+          <button class="confirm-cancel" onclick="showDeleteId=null;render()">取消</button>
+          <button class="confirm-ok" onclick="deleteRecord(${showDeleteId})">确认删除</button>
+        </div>
+      </div>
+    </div>` : ""}
+
+    ${showClearConfirm ? `
+    <div class="confirm-overlay">
+      <div class="confirm-box">
+        <div class="confirm-icon">🗑</div>
+        <div class="confirm-title">清除全部历史？</div>
+        <div class="confirm-desc">共 ${history.length} 条记录将被永久删除，无法恢复。</div>
+        <div class="confirm-btns">
+          <button class="confirm-cancel" onclick="showClearConfirm=false;render()">取消</button>
+          <button class="confirm-ok" onclick="clearAllHistory()">确认清除</button>
+        </div>
+      </div>
+    </div>` : ""}
+
+    ${showLocationModal ? `
+    <div class="confirm-overlay" onclick="showLocationModal=false;render()">
+      <div class="location-modal-box" onclick="event.stopPropagation()">
+        <div class="location-modal-title">📍 选择打球球场</div>
+        <button class="location-search-btn" ${locationLoading?"disabled":""} onclick="searchNearbyCourses()">
+          ${locationLoading ? "⏳ 定位搜索中…" : "🗺 搜索附近球场"}
+        </button>
+        ${locationError ? `<div class="location-error">${locationError}</div>` : ""}
+        ${locationResults.length > 0 ? `
+        <div class="location-results">
+          ${locationResults.map(c => {
+            const distStr = c.dist < 1 ? Math.round(c.dist*1000)+"m" : c.dist.toFixed(1)+"km";
+            const safeName = c.name.replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+            return `<button class="course-item" onclick="selectLocation('${safeName}')"><span class="course-name">${c.name}</span><span class="course-dist">${distStr}</span></button>`;
+          }).join("")}
+        </div>` : ""}
+        <div class="location-divider">或手动输入</div>
+        <div class="location-manual-row">
+          <input type="text" id="location-manual-input" class="location-manual-input"
+                 placeholder="球场名称" value="${locationManualName.replace(/"/g,'&quot;')}"
+                 oninput="locationManualName=this.value" />
+          <button class="location-manual-btn" onclick="if(locationManualName.trim())selectLocation(locationManualName.trim())">确认</button>
+        </div>
+        <button class="location-cancel-btn" onclick="showLocationModal=false;render()">取消</button>
+      </div>
+    </div>` : ""}
+
     <div class="header">
+      <div class="header-logo">⛳</div>
       <div class="header-sub">Golf Scorecard</div>
       <div class="header-title">高尔夫记分卡</div>
-      ${deferredPrompt && !isInStandalone ? `<button class="install-fab" onclick="triggerInstall()">📲 安装APP</button>` : ""}
+      <button class="menu-fab" onclick="showMenu=!showMenu;render()">⋮</button>
+      ${showMenu ? `
+      <div class="menu-backdrop" onclick="showMenu=false;render()"></div>
+      <div class="menu-dropdown">
+        ${deferredPrompt && !isInStandalone ? `<button class="menu-item" onclick="showMenu=false;triggerInstall()">📲 安装APP</button>` : ""}
+        <button class="menu-item" onclick="showMenu=false;render();exportData()">📥 导出备份到手机</button>
+        <button class="menu-item" onclick="showMenu=false;render();importData()">📤 从备份恢复</button>
+        ${history.length>0?`<button class="menu-item" style="color:#DC2626" onclick="showMenu=false;showClearConfirm=true;render()">🗑 清除全部历史</button>`:""}
+        <button class="menu-item" style="color:#2563EB" onclick="forceRefresh()">🔄 强制刷新到最新版</button>
+      </div>` : ""}
     </div>
 
     ${bannerHtml}
@@ -346,6 +647,15 @@ function render() {
     </div>
 
     ${tab==="card" ? `
+      <div class="location-bar">
+        ${courseLocation
+          ? `<span style="font-size:16px">📍</span><span class="location-name">${courseLocation.name}</span>
+             <button class="location-change-btn" onclick="showLocationModal=true;render()">更换</button>
+             <button class="location-clear-btn" onclick="clearLocation()">×</button>`
+          : `<span style="font-size:16px;color:#94A3B8">📍</span>
+             <button class="location-set-btn" onclick="showLocationModal=true;render()">设置打球球场（可选）</button>`
+        }
+      </div>
       <div class="stat-bar">
         <div class="stat-chip"><div class="stat-val" style="color:#D97706">${eagles}</div><div class="stat-lbl">🦅 老鹰</div></div>
         <div class="stat-chip"><div class="stat-val" style="color:#16A34A">${birds}</div><div class="stat-lbl">🐦 小鸟</div></div>
@@ -385,12 +695,57 @@ function render() {
 render();
 </script>
 
-<!-- Service Worker registration -->
+<!-- Service Worker registration + update detection -->
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+  let waitingWorker = null;
+
+  // 显示更新提示条
+  function showUpdateBar() {
+    if (document.getElementById("sw-update-bar")) return;
+    const bar = document.createElement("div");
+    bar.id = "sw-update-bar";
+    bar.style.cssText = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);" +
+      "background:#166534;color:#fff;padding:12px 20px;border-radius:30px;font-size:14px;" +
+      "font-weight:500;z-index:999;display:flex;align-items:center;gap:12px;" +
+      "box-shadow:0 4px 24px rgba(0,0,0,0.22);white-space:nowrap;";
+    bar.innerHTML = '🆕 发现新版本 ' +
+      '<button onclick="applyUpdate()" style="background:rgba(255,255,255,0.22);' +
+      'border:1.5px solid rgba(255,255,255,0.5);color:#fff;border-radius:20px;' +
+      'padding:5px 14px;font-size:13px;font-weight:700;cursor:pointer;">立即更新</button>';
+    document.body.appendChild(bar);
+  }
+
+  window.applyUpdate = function () {
+    if (waitingWorker) waitingWorker.postMessage("skipWaiting");
+  };
+
+  // 新 SW 激活后自动刷新页面
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    window.location.reload();
   });
+
+  navigator.serviceWorker.register("sw.js").then(reg => {
+    // 每次加载检查是否有新版本
+    reg.update();
+
+    reg.addEventListener("updatefound", () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener("statechange", () => {
+        if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+          // 有新 SW 等待 → 显示更新条
+          waitingWorker = newWorker;
+          showUpdateBar();
+        }
+      });
+    });
+
+    // 首次加载时若已有 waiting 的 SW，也提示
+    if (reg.waiting && navigator.serviceWorker.controller) {
+      waitingWorker = reg.waiting;
+      showUpdateBar();
+    }
+  }).catch(() => {});
 }
 </script>
 </body>
