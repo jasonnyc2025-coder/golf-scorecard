@@ -83,8 +83,10 @@
     /* Holes grid */
     .holes-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; padding: 0 7px; }
     .hole-card { border-radius: 14px; overflow: hidden; transition: all 0.15s; box-shadow: 0 2px 8px rgba(0,0,0,0.13); }
-    .hole-hdr { display: flex; align-items: center; justify-content: center; padding: 8px 4px; position: relative; }
-    .hole-num { font-size: 20px; font-weight: 900; letter-spacing: 0.2px; }
+    .hole-hdr { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 4px; position: relative; cursor: pointer; }
+    .hole-hdr:active { opacity: 0.82; }
+    .hole-num { font-size: 18px; font-weight: 900; letter-spacing: 0.2px; line-height: 1.1; }
+    .hole-par-label { font-size: 10px; font-weight: 700; opacity: 0.85; line-height: 1.2; letter-spacing: 0.3px; }
     .clear-hole-btn { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 14px; cursor: pointer; padding: 0 2px; opacity: 0.7; line-height: 1; }
     .clear-hole-btn:active { opacity: 1; }
     .hole-body { padding: 8px 6px 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -240,17 +242,18 @@ let toastTimer  = null;
 let showInstall = true;
 let deferredPrompt = null;
 
-let courseLocation    = null;   // { name: "..." }
+let courseLocation    = null;   // { name, lat, lon }
 let showLocationModal = false;
 let locationResults   = [];
 let locationLoading   = false;
 let locationError     = null;
 let locationManualName = "";
+let holePars = Array(HOLES).fill(4); // per-hole par, default 4×18=72
 
 // 当前轮次草稿存取（localStorage，小数据用它即可）
 const DRAFT_KEY = "golf_draft";
 function saveDraft() {
-  try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ scores, courseLocation })); } catch {}
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ scores, courseLocation, holePars })); } catch {}
 }
 function loadDraft() {
   try {
@@ -262,6 +265,7 @@ function loadDraft() {
       } else {
         scores = parsed.scores || Array(HOLES).fill(null);
         courseLocation = parsed.courseLocation || null;
+        holePars = parsed.holePars || Array(HOLES).fill(4);
       }
     }
   } catch {}
@@ -312,11 +316,13 @@ function clearHole(hole) {
 }
 async function finish() {
   const total = scores.reduce((a,b)=>a+(b??0),0);
+  const coursePar = holePars.reduce((a,b)=>a+b,0);
   const rec = {
     id: Date.now(),
     date: new Date().toLocaleDateString("zh-CN",{year:"numeric",month:"2-digit",day:"2-digit",weekday:"short"}),
     scores: [...scores], total,
-    totalStrokes: total + PAR,
+    holePars: [...holePars], coursePar,
+    totalStrokes: total + coursePar,
     birdies: scores.filter(s=>s===-1).length,
     eagles:  scores.filter(s=>s<=-2).length,
     bogeys:  scores.filter(s=>s>=1).length,
@@ -437,7 +443,7 @@ async function searchNearbyCourses() {
         const elLon = el.lon ?? el.center?.lon;
         const name = el.tags?.["name:en"] || el.tags?.name || "Unnamed Course";
         const dist = distKm(lat, lon, elLat, elLon);
-        return { name, dist };
+        return { name, dist, lat: elLat, lon: elLon };
       })
       .filter(c => !isNaN(c.dist))
       .sort((a, b) => a.dist - b.dist)
@@ -450,18 +456,49 @@ async function searchNearbyCourses() {
   render();
 }
 
-function selectLocation(name) {
-  courseLocation = { name };
+function selectLocation(name, lat, lon) {
+  courseLocation = { name, lat: lat||null, lon: lon||null };
   showLocationModal = false;
   locationResults = [];
   locationError = null;
   locationManualName = "";
+  holePars = Array(HOLES).fill(4); // reset to default when switching course
+  saveDraft();
+  render();
+  if (lat && lon) fetchCourseHoles(lat, lon);
+}
+
+async function fetchCourseHoles(lat, lon) {
+  try {
+    const query = `[out:json][timeout:15];(way["leisure"="golf_hole"](around:2000,${lat},${lon});relation["leisure"="golf_hole"](around:2000,${lat},${lon}););out tags;`;
+    const resp = await fetch("https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query));
+    const data = await resp.json();
+    const found = {};
+    for (const el of data.elements) {
+      const ref = parseInt(el.tags?.ref);
+      const par = parseInt(el.tags?.par);
+      if (ref >= 1 && ref <= 18 && [3,4,5].includes(par)) found[ref] = par;
+    }
+    const count = Object.keys(found).length;
+    if (count >= 6) {
+      holePars = Array(HOLES).fill(4).map((def, i) => found[i+1] ?? def);
+      saveDraft();
+      render();
+      showToast(`⛳ Loaded Par data for ${count} holes`);
+    }
+  } catch {}
+}
+
+function cycleHolePar(hole) {
+  const opts = [3, 4, 5];
+  holePars[hole-1] = opts[(opts.indexOf(holePars[hole-1])+1) % opts.length];
   saveDraft();
   render();
 }
 
 function clearLocation() {
   courseLocation = null;
+  holePars = Array(HOLES).fill(4);
   saveDraft();
   render();
 }
@@ -470,7 +507,8 @@ function clearLocation() {
 function render() {
   const filled = scores.filter(s=>s!==null).length;
   const total  = scores.reduce((a,b)=>a+(b??0),0);
-  const strokes = total + PAR;
+  const coursePar = holePars.reduce((a,b)=>a+b, 0);
+  const strokes = total + coursePar;
   const allDone = filled === HOLES;
   const birds  = scores.filter(s=>s===-1).length;
   const eagles = scores.filter(s=>s<=-2).length;
@@ -486,9 +524,10 @@ function render() {
     const scoreText = v===null ? `<span class="dash">–</span>` : (v>0?`+${v}`:v);
     holesHtml += `
       <div class="hole-card" style="background:${st.bg}">
-        <div class="hole-hdr" style="background:${st.hdrBg}">
+        <div class="hole-hdr" style="background:${st.hdrBg}" onclick="cycleHolePar(${h})">
           <span class="hole-num" style="color:${st.hdrColor}">第${h}洞</span>
-          ${v!==null ? `<button class="clear-hole-btn" onclick="clearHole(${h})" style="color:${st.hdrColor}">×</button>` : ""}
+          <span class="hole-par-label" style="color:${st.hdrColor}">Par ${holePars[h-1]}</span>
+          ${v!==null ? `<button class="clear-hole-btn" onclick="event.stopPropagation();clearHole(${h})" style="color:${st.hdrColor}">×</button>` : ""}
         </div>
         <div class="hole-body">
           <button class="adj-btn" onclick="setScore(${h},${(v??0)+1})" ${v!==null&&v>=4?"disabled":""}>+</button>
@@ -522,7 +561,7 @@ function render() {
             <div>
               <div class="hc-date">${r.date}${r.location ? ` &nbsp;📍 ${r.location}` : ""}</div>
               <div class="hc-strokes">${r.totalStrokes}</div>
-              <div class="hc-strokes-lbl">总杆数</div>
+              <div class="hc-strokes-lbl">总杆数${r.coursePar ? ` (Par ${r.coursePar})` : ""}</div>
             </div>
             <div style="text-align:right;padding-right:32px">
               <div style="font-family:'Noto Serif SC',serif;font-size:26px;font-weight:900;color:${dc};line-height:1">${dt}</div>
@@ -609,7 +648,7 @@ function render() {
           ${locationResults.map(c => {
             const distStr = c.dist < 1 ? Math.round(c.dist*1000)+"m" : c.dist.toFixed(1)+"km";
             const safeName = c.name.replace(/\\/g,"\\\\").replace(/'/g,"\\'");
-            return `<button class="course-item" onclick="selectLocation('${safeName}')"><span class="course-name">${c.name}</span><span class="course-dist">${distStr}</span></button>`;
+            return `<button class="course-item" onclick="selectLocation('${safeName}',${c.lat},${c.lon})"><span class="course-name">${c.name}</span><span class="course-dist">${distStr}</span></button>`;
           }).join("")}
         </div>` : ""}
         <div class="location-divider">或手动输入</div>
@@ -666,7 +705,7 @@ function render() {
         <div>
           <div class="total-label">与标准杆</div>
           <div class="total-score ${totalClass}">${totalText}</div>
-          <div class="progress-text">${filled} / 18 洞已记录</div>
+          <div class="progress-text">${filled} / 18 洞 · Par ${coursePar}</div>
         </div>
         <div style="text-align:right">
           <div class="strokes-val">${filled>0?strokes:"—"}</div>
