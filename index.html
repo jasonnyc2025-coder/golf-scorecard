@@ -485,6 +485,7 @@ function selectLocation(name, lat, lon) {
   saveDraft();
   render();
   if (lat && lon) fetchCourseHoles(lat, lon);
+  else fetchCourseDataFromWiki(name);
 }
 
 async function fetchCourseHoles(lat, lon) {
@@ -524,9 +525,77 @@ async function fetchCourseHoles(lat, lon) {
       saveDraft();
       render();
       const hasExtra = Object.values(found).some(h => h.distance || h.handicap);
-      showToast(`⛳ Loaded ${count} holes${hasExtra ? " with yardage & handicap" : ""}`);
+      showToast(`⛳ 已加载 ${count} 洞数据${hasExtra ? "（含距离/差点）" : ""}`);
+      return; // OSM data found, skip Wikipedia
     }
   } catch {}
+  // OSM had no data — try Wikipedia as fallback
+  if (courseLocation?.name) fetchCourseDataFromWiki(courseLocation.name);
+}
+
+// ── Wikipedia 球场数据查询 ────────────────────────────────────────────
+function extractParsFromWikitext(wikitext) {
+  const lines = wikitext.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    // Match lines like: | Par || 4 || 5 || 3 || ...
+    if (/\|\s*[Pp]ar\b/.test(line) || /!\s*[Pp]ar\b/.test(line)) {
+      // Collect numbers from this line and possibly next few lines
+      let src = line;
+      if ((src.match(/\d/g) || []).length < 9) src += ' ' + lines.slice(i+1, i+4).join(' ');
+      const nums = src.match(/\b([345])\b/g)?.map(Number) || [];
+      const holePars = nums.filter(n => [3,4,5].includes(n));
+      if (holePars.length >= 18) return holePars.slice(0, 18);
+      if (holePars.length === 9) return [...holePars, ...holePars]; // front 9 repeated as placeholder
+    }
+  }
+  return null;
+}
+
+async function fetchCourseDataFromWiki(name) {
+  try {
+    // Step 1: Search Wikipedia
+    const searchResp = await fetch(
+      `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name+" golf")}&srlimit=4&format=json&origin=*`,
+      { signal: AbortSignal.timeout(8000) }
+    );
+    const { query } = await searchResp.json();
+    const pages = query?.search || [];
+    if (!pages.length) return;
+
+    // Step 2: Try each result's wikitext for a scorecard
+    for (const page of pages.slice(0, 3)) {
+      const parseResp = await fetch(
+        `https://en.wikipedia.org/w/api.php?action=parse&pageid=${page.pageid}&prop=wikitext&format=json&origin=*`,
+        { signal: AbortSignal.timeout(8000) }
+      );
+      const parseData = await parseResp.json();
+      const wikitext = parseData.parse?.wikitext?.['*'] || '';
+      const pars = extractParsFromWikitext(wikitext);
+      if (pars) {
+        holePars = pars;
+        holeDetails = Array(HOLES).fill(null); // no distance/handicap from wiki
+        saveDraft();
+        render();
+        showToast(`📖 已从 Wikipedia 加载球场Par数据`);
+        return;
+      }
+    }
+  } catch {}
+  // Neither OSM nor Wikipedia had data — nothing to do, user can set manually
+}
+
+function setAllPar(par) {
+  holePars = Array(HOLES).fill(par);
+  saveDraft();
+  render();
+}
+
+function applyParTemplate(template) {
+  // template: array of 18 pars
+  holePars = [...template];
+  saveDraft();
+  render();
 }
 
 function cycleHolePar(hole) {
@@ -733,7 +802,13 @@ function render() {
       return `<div class="confirm-overlay" onclick="showScorecardModal=false;render()">
         <div class="scorecard-modal" onclick="event.stopPropagation()">
           <div class="scorecard-title">${courseLocation?.name||"球场记分卡"}</div>
-          <div class="scorecard-sub">${hasDistance||hasHandicap ? "已从地图加载球场数据 · " : "未找到球场数据，"}点击 Par 数字可手动切换 3 / 4 / 5</div>
+          <div class="scorecard-sub">${hasDistance||hasHandicap ? "✅ 已加载球场数据 · " : ""}点击 Par 数字可切换 3 / 4 / 5</div>
+          ${!hasDistance && !hasHandicap ? `<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+            <span style="font-size:11px;color:#94A3B8;align-self:center">快速预设：</span>
+            <button onclick="setAllPar(4)" style="flex:1;padding:7px 4px;border-radius:8px;border:1.5px solid #E2E8F0;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#166534">全部Par4</button>
+            <button onclick="applyParTemplate([4,5,3,4,4,4,3,5,4,4,4,3,5,4,4,3,4,5])" style="flex:1;padding:7px 4px;border-radius:8px;border:1.5px solid #E2E8F0;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#1D4ED8">标准Par72</button>
+            <button onclick="applyParTemplate([4,4,3,5,4,3,4,5,4,4,3,5,4,4,3,5,4,4])" style="flex:1;padding:7px 4px;border-radius:8px;border:1.5px solid #E2E8F0;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#9333EA">均衡Par72</button>
+          </div>` : ""}
           <div class="scorecard-wrap">
             <table class="scorecard-tbl">
               <thead><tr>
@@ -758,7 +833,7 @@ function render() {
               </tr></tfoot>
             </table>
           </div>
-          ${courseLocation?.lat && !hasDistance && !hasHandicap ? `<button class="scorecard-close" style="background:#F0FDF4;color:#166534;border-color:#BBF7D0;margin-bottom:8px" onclick="showScorecardModal=false;fetchCourseHoles(${courseLocation.lat},${courseLocation.lon})">🔍 重新搜索球场数据</button>` : ""}
+          ${!hasDistance && !hasHandicap ? `<button class="scorecard-close" style="background:#F0FDF4;color:#166534;border-color:#BBF7D0;margin-bottom:8px" onclick="showScorecardModal=false;${courseLocation?.lat?`fetchCourseHoles(${courseLocation.lat},${courseLocation.lon})`:`fetchCourseDataFromWiki('${(courseLocation?.name||"").replace(/'/g,"\\'")}')` }">🔍 重新搜索球场数据</button>` : ""}
           <button class="scorecard-close" onclick="showScorecardModal=false;render()">关闭</button>
         </div>
       </div>`;
