@@ -435,7 +435,7 @@ async function searchNearbyCourses() {
       .map(el => {
         const elLat = el.lat ?? el.center?.lat;
         const elLon = el.lon ?? el.center?.lon;
-        const name = el.tags?.["name:zh"] || el.tags?.name || "未命名球场";
+        const name = el.tags?.["name:en"] || el.tags?.name || "Unnamed Course";
         const dist = distKm(lat, lon, elLat, elLon);
         return { name, dist };
       })
