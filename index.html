@@ -140,6 +140,21 @@
     .install-banner { margin: 12px 8px 0; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #1D4ED8; }
     .install-banner-close { margin-left: auto; background: none; border: none; color: #93C5FD; font-size: 16px; cursor: pointer; padding: 0 4px; }
 
+    /* Scorecard modal */
+    .scorecard-modal { background: #fff; border-radius: 20px; padding: 20px 16px 16px; width: 100%; max-width: 380px; max-height: 88vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.22); }
+    .scorecard-title { font-family: 'Noto Serif SC', serif; font-size: 16px; font-weight: 700; color: #1E293B; text-align: center; margin-bottom: 3px; }
+    .scorecard-sub { font-size: 11px; color: #94A3B8; text-align: center; margin-bottom: 12px; }
+    .scorecard-wrap { overflow-y: auto; flex: 1; border-radius: 10px; border: 1.5px solid #E2E8F0; }
+    .scorecard-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .scorecard-tbl th { background: #F8FAFC; padding: 8px 4px; text-align: center; font-size: 11px; font-weight: 600; color: #64748B; border-bottom: 2px solid #E2E8F0; position: sticky; top: 0; z-index: 1; }
+    .scorecard-tbl td { padding: 9px 4px; text-align: center; border-bottom: 1px solid #F1F5F9; color: #1E293B; }
+    .scorecard-tbl tr:last-child td { border-bottom: none; }
+    .scorecard-tbl .par-tap { display: inline-block; font-weight: 700; color: #166534; background: #DCFCE7; border-radius: 6px; padding: 3px 10px; cursor: pointer; font-size: 14px; }
+    .scorecard-tbl .par-tap:active { background: #BBF7D0; }
+    .scorecard-sep td { background: #F0FDF4; font-weight: 700; color: #166534; font-size: 12px; border-top: 1.5px solid #BBF7D0; border-bottom: 1.5px solid #BBF7D0; }
+    .scorecard-total td { background: #166534; color: #fff; font-weight: 700; font-size: 14px; }
+    .scorecard-close { margin-top: 12px; width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid #E2E8F0; background: #fff; color: #64748B; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; }
+
     /* Location bar */
     .location-bar { margin: 8px 8px 0; display: flex; align-items: center; background: #fff; border: 1.5px solid #D1FAE5; border-radius: 12px; padding: 10px 14px; gap: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
     .location-set-btn { background: none; border: none; color: #166534; font-size: 14px; font-weight: 500; cursor: pointer; flex: 1; text-align: left; padding: 0; }
@@ -248,12 +263,14 @@ let locationResults   = [];
 let locationLoading   = false;
 let locationError     = null;
 let locationManualName = "";
-let holePars = Array(HOLES).fill(4); // per-hole par, default 4×18=72
+let holePars    = Array(HOLES).fill(4); // per-hole par, default 4×18=72
+let holeDetails = Array(HOLES).fill(null); // { par, handicap, distance, distUnit, name }
+let showScorecardModal = false;
 
 // 当前轮次草稿存取（localStorage，小数据用它即可）
 const DRAFT_KEY = "golf_draft";
 function saveDraft() {
-  try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ scores, courseLocation, holePars })); } catch {}
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ scores, courseLocation, holePars, holeDetails })); } catch {}
 }
 function loadDraft() {
   try {
@@ -265,7 +282,8 @@ function loadDraft() {
       } else {
         scores = parsed.scores || Array(HOLES).fill(null);
         courseLocation = parsed.courseLocation || null;
-        holePars = parsed.holePars || Array(HOLES).fill(4);
+        holePars    = parsed.holePars    || Array(HOLES).fill(4);
+        holeDetails = parsed.holeDetails || Array(HOLES).fill(null);
       }
     }
   } catch {}
@@ -462,7 +480,8 @@ function selectLocation(name, lat, lon) {
   locationResults = [];
   locationError = null;
   locationManualName = "";
-  holePars = Array(HOLES).fill(4); // reset to default when switching course
+  holePars    = Array(HOLES).fill(4);
+  holeDetails = Array(HOLES).fill(null);
   saveDraft();
   render();
   if (lat && lon) fetchCourseHoles(lat, lon);
@@ -475,16 +494,37 @@ async function fetchCourseHoles(lat, lon) {
     const data = await resp.json();
     const found = {};
     for (const el of data.elements) {
-      const ref = parseInt(el.tags?.ref);
-      const par = parseInt(el.tags?.par);
-      if (ref >= 1 && ref <= 18 && [3,4,5].includes(par)) found[ref] = par;
+      const t = el.tags || {};
+      const ref = parseInt(t.ref);
+      const par = parseInt(t.par);
+      if (ref >= 1 && ref <= 18 && [3,4,5].includes(par)) {
+        // Parse distance — prefer yards tag, fall back to distance (assume meters)
+        let distance = null, distUnit = "m";
+        const yd = t["distance:yards"] || t["length:yards"];
+        const m  = t.distance || t.length;
+        if (yd) { distance = Math.round(parseFloat(yd)); distUnit = "yd"; }
+        else if (m) {
+          const raw = String(m);
+          if (raw.toLowerCase().includes("yd")) { distance = Math.round(parseFloat(raw)); distUnit = "yd"; }
+          else { distance = Math.round(parseFloat(raw)); distUnit = "m"; }
+        }
+        found[ref] = {
+          par,
+          handicap: t.handicap ? parseInt(t.handicap) : null,
+          distance,
+          distUnit,
+          name: t.name || t["name:en"] || null,
+        };
+      }
     }
     const count = Object.keys(found).length;
     if (count >= 6) {
-      holePars = Array(HOLES).fill(4).map((def, i) => found[i+1] ?? def);
+      holePars    = Array(HOLES).fill(4).map((def, i) => found[i+1]?.par ?? def);
+      holeDetails = Array(HOLES).fill(null).map((_, i) => found[i+1] || null);
       saveDraft();
       render();
-      showToast(`⛳ Loaded Par data for ${count} holes`);
+      const hasExtra = Object.values(found).some(h => h.distance || h.handicap);
+      showToast(`⛳ Loaded ${count} holes${hasExtra ? " with yardage & handicap" : ""}`);
     }
   } catch {}
 }
@@ -498,7 +538,9 @@ function cycleHolePar(hole) {
 
 function clearLocation() {
   courseLocation = null;
-  holePars = Array(HOLES).fill(4);
+  holePars    = Array(HOLES).fill(4);
+  holeDetails = Array(HOLES).fill(null);
+  showScorecardModal = false;
   saveDraft();
   render();
 }
@@ -537,6 +579,7 @@ function render() {
           }
           <button class="adj-btn" onclick="setScore(${h},${(v??0)-1})" ${v!==null&&v<=-3?"disabled":""}>−</button>
           <div class="score-label" style="color:${lbl?lbl.color:"#94A3B8"}">${lbl?lbl.label:"未记录"}</div>
+          ${(()=>{ const d=holeDetails[i]; const parts=[]; if(d?.distance)parts.push(d.distance+d.distUnit); if(d?.handicap)parts.push("H"+d.handicap); return parts.length?`<div style="font-size:9px;color:rgba(0,0,0,0.35);text-align:center;line-height:1;margin-top:1px">${parts.join(" · ")}</div>`:""; })()}
         </div>
       </div>`;
   }
@@ -662,6 +705,64 @@ function render() {
       </div>
     </div>` : ""}
 
+    ${showScorecardModal ? (() => {
+      const hasDistance = holeDetails.some(d => d?.distance != null);
+      const hasHandicap = holeDetails.some(d => d?.handicap != null);
+      const hasName     = holeDetails.some(d => d?.name);
+      const front9par = holePars.slice(0,9).reduce((a,b)=>a+b,0);
+      const back9par  = holePars.slice(9).reduce((a,b)=>a+b,0);
+      const front9dist = hasDistance ? holeDetails.slice(0,9).reduce((a,d)=>a+(d?.distance||0),0) : 0;
+      const back9dist  = hasDistance ? holeDetails.slice(9).reduce((a,d)=>a+(d?.distance||0),0) : 0;
+      const distUnit = holeDetails.find(d=>d?.distUnit)?.distUnit || "m";
+      let rows = "";
+      for (let i=0; i<HOLES; i++) {
+        const h = i+1, d = holeDetails[i];
+        rows += `<tr>
+          <td style="font-weight:600;color:#64748B">${h}</td>
+          ${hasName ? `<td style="font-size:11px;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d?.name||"—"}</td>` : ""}
+          <td><span class="par-tap" onclick="cycleHolePar(${h})">${holePars[i]}</span></td>
+          ${hasDistance ? `<td style="color:#64748B;font-size:12px">${d?.distance!=null?d.distance+d.distUnit:"—"}</td>` : ""}
+          ${hasHandicap ? `<td style="color:#94A3B8;font-size:12px">${d?.handicap!=null?d.handicap:"—"}</td>` : ""}
+        </tr>`;
+        if (i===8) rows += `<tr class="scorecard-sep">
+          <td colspan="${1+(hasName?1:0)+1+(hasDistance?1:0)+(hasHandicap?1:0)}" style="text-align:left;padding-left:10px">
+            OUT &nbsp; Par ${front9par}${hasDistance&&front9dist?` &nbsp; ${front9dist}${distUnit}`:""}
+          </td>
+        </tr>`;
+      }
+      return `<div class="confirm-overlay" onclick="showScorecardModal=false;render()">
+        <div class="scorecard-modal" onclick="event.stopPropagation()">
+          <div class="scorecard-title">${courseLocation?.name||"球场记分卡"}</div>
+          <div class="scorecard-sub">点击 Par 数字可切换 3 / 4 / 5</div>
+          <div class="scorecard-wrap">
+            <table class="scorecard-tbl">
+              <thead><tr>
+                <th>洞</th>
+                ${hasName?"<th>洞名</th>":""}
+                <th>Par</th>
+                ${hasDistance?`<th>距离</th>`:""}
+                ${hasHandicap?`<th>差点</th>`:""}
+              </tr></thead>
+              <tbody>${rows}</tbody>
+              <tfoot><tr class="scorecard-sep">
+                <td colspan="${1+(hasName?1:0)+1+(hasDistance?1:0)+(hasHandicap?1:0)}" style="text-align:left;padding-left:10px">
+                  IN &nbsp; Par ${back9par}${hasDistance&&back9dist?` &nbsp; ${back9dist}${distUnit}`:""}
+                </td>
+              </tr>
+              <tr class="scorecard-total">
+                <td>TOT</td>
+                ${hasName?"<td></td>":""}
+                <td>${holePars.reduce((a,b)=>a+b,0)}</td>
+                ${hasDistance&&(front9dist||back9dist)?`<td>${front9dist+back9dist}${distUnit}</td>`:(hasDistance?"<td>—</td>":"")}
+                ${hasHandicap?"<td></td>":""}
+              </tr></tfoot>
+            </table>
+          </div>
+          <button class="scorecard-close" onclick="showScorecardModal=false;render()">关闭</button>
+        </div>
+      </div>`;
+    })() : ""}
+
     <div class="header">
       <div class="header-logo">⛳</div>
       <div class="header-sub">Golf Scorecard</div>
@@ -689,6 +790,7 @@ function render() {
       <div class="location-bar">
         ${courseLocation
           ? `<span style="font-size:16px">📍</span><span class="location-name">${courseLocation.name}</span>
+             ${holeDetails.some(d=>d!==null) ? `<button class="location-change-btn" style="background:#DCFCE7;border-color:#BBF7D0" onclick="showScorecardModal=true;render()">📋 球场卡</button>` : ""}
              <button class="location-change-btn" onclick="showLocationModal=true;render()">更换</button>
              <button class="location-clear-btn" onclick="clearLocation()">×</button>`
           : `<span style="font-size:16px;color:#94A3B8">📍</span>
