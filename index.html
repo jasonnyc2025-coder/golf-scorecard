@@ -733,7 +733,7 @@ function render() {
       return `<div class="confirm-overlay" onclick="showScorecardModal=false;render()">
         <div class="scorecard-modal" onclick="event.stopPropagation()">
           <div class="scorecard-title">${courseLocation?.name||"球场记分卡"}</div>
-          <div class="scorecard-sub">点击 Par 数字可切换 3 / 4 / 5</div>
+          <div class="scorecard-sub">${hasDistance||hasHandicap ? "已从地图加载球场数据 · " : "未找到球场数据，"}点击 Par 数字可手动切换 3 / 4 / 5</div>
           <div class="scorecard-wrap">
             <table class="scorecard-tbl">
               <thead><tr>
@@ -758,6 +758,7 @@ function render() {
               </tr></tfoot>
             </table>
           </div>
+          ${courseLocation?.lat && !hasDistance && !hasHandicap ? `<button class="scorecard-close" style="background:#F0FDF4;color:#166534;border-color:#BBF7D0;margin-bottom:8px" onclick="showScorecardModal=false;fetchCourseHoles(${courseLocation.lat},${courseLocation.lon})">🔍 重新搜索球场数据</button>` : ""}
           <button class="scorecard-close" onclick="showScorecardModal=false;render()">关闭</button>
         </div>
       </div>`;
@@ -790,7 +791,7 @@ function render() {
       <div class="location-bar">
         ${courseLocation
           ? `<span style="font-size:16px">📍</span><span class="location-name">${courseLocation.name}</span>
-             ${holeDetails.some(d=>d!==null) ? `<button class="location-change-btn" style="background:#DCFCE7;border-color:#BBF7D0" onclick="showScorecardModal=true;render()">📋 球场卡</button>` : ""}
+             <button class="location-change-btn" style="background:#DCFCE7;border-color:#BBF7D0;color:#166534" onclick="showScorecardModal=true;render()">📋 Par设置</button>
              <button class="location-change-btn" onclick="showLocationModal=true;render()">更换</button>
              <button class="location-clear-btn" onclick="clearLocation()">×</button>`
           : `<span style="font-size:16px;color:#94A3B8">📍</span>
