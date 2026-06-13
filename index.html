@@ -65,10 +65,10 @@
     .tab-btn.active { background: #166534; color: #fff; box-shadow: 0 2px 8px rgba(22,101,52,0.25); }
 
     /* Stat bar */
-    .stat-bar { display: flex; gap: 8px; padding: 14px 8px; }
-    .stat-chip { flex: 1; background: #fff; border-radius: 12px; padding: 12px 6px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #E2E8F0; }
-    .stat-val { font-family: 'Noto Serif SC', serif; font-size: 30px; font-weight: 700; line-height: 1; }
-    .stat-lbl { font-size: 16px; color: #94A3B8; letter-spacing: 0.5px; margin-top: 5px; }
+    .stat-bar { display: flex; gap: 5px; padding: 14px 8px; }
+    .stat-chip { flex: 1; background: #fff; border-radius: 12px; padding: 10px 4px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #E2E8F0; min-width: 0; }
+    .stat-val { font-family: 'Noto Serif SC', serif; font-size: 26px; font-weight: 700; line-height: 1; }
+    .stat-lbl { font-size: 12px; color: #94A3B8; letter-spacing: 0.2px; margin-top: 5px; }
 
     /* Total banner */
     .total-banner { margin: 0 8px 14px; background: #fff; border-radius: 16px; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border: 1px solid #E2E8F0; }
@@ -622,9 +622,10 @@ function render() {
   const strokes = total + coursePar;
   const allDone = filled === HOLES;
   const birds  = scores.filter(s=>s===-1).length;
-  const eagles = scores.filter(s=>s<=-2).length;
-  const bogeys = scores.filter(s=>s>=1).length;
-  const pars   = scores.filter(s=>s===0).length;
+  const eagles  = scores.filter(s=>s<=-2).length;
+  const bogeys  = scores.filter(s=>s===1).length;
+  const doubles = scores.filter(s=>s>=2).length;
+  const pars    = scores.filter(s=>s===0).length;
 
   // holes grid
   let holesHtml = "";
@@ -683,7 +684,7 @@ function render() {
           <div class="hc-stats">
             ${r.eagles>0?`<span class="hc-badge" style="background:#FEF3C7;color:#D97706">🦅 老鹰 ×${r.eagles}</span>`:""}
             ${r.birdies>0?`<span class="hc-badge" style="background:#DCFCE7;color:#16A34A">🐦 小鸟 ×${r.birdies}</span>`:""}
-            ${r.bogeys>0?`<span class="hc-badge" style="background:#FEE2E2;color:#DC2626">博忌 ×${r.bogeys}</span>`:""}
+            ${(()=>{ const b=r.scores?.filter(s=>s===1).length||r.bogeys||0; const d=r.scores?.filter(s=>s>=2).length||0; return (b>0?`<span class="hc-badge" style="background:#FFEDD5;color:#F97316">博忌 ×${b}</span>`:"")+(d>0?`<span class="hc-badge" style="background:#FEE2E2;color:#DC2626">双+ ×${d}</span>`:""); })()}
           </div>
           <div class="hc-holes">${dots}</div>
         </div>`;
@@ -877,7 +878,8 @@ function render() {
         <div class="stat-chip"><div class="stat-val" style="color:#D97706">${eagles}</div><div class="stat-lbl">🦅 老鹰</div></div>
         <div class="stat-chip"><div class="stat-val" style="color:#16A34A">${birds}</div><div class="stat-lbl">🐦 小鸟</div></div>
         <div class="stat-chip"><div class="stat-val" style="color:#64748B">${pars}</div><div class="stat-lbl">— 平标</div></div>
-        <div class="stat-chip"><div class="stat-val" style="color:#DC2626">${bogeys}</div><div class="stat-lbl">博忌+</div></div>
+        <div class="stat-chip"><div class="stat-val" style="color:#F97316">${bogeys}</div><div class="stat-lbl">博忌+1</div></div>
+        <div class="stat-chip"><div class="stat-val" style="color:#DC2626">${doubles}</div><div class="stat-lbl">双+≥+2</div></div>
       </div>
       <div class="total-banner">
         <div>
